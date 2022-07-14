@@ -7,6 +7,7 @@ public class Frecuencia {
    public String codTipoServicio;
    public String frecuencia;
    public String ocurrencia;
+   public String codigoEstatico;
    @Override
    public String toString() {
       return "Frecuencia [codTipoServicio=" + codTipoServicio + ", frecuencia=" + frecuencia + ", nroAfiliado="
