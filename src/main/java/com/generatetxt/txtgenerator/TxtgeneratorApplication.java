@@ -53,6 +53,7 @@ public class TxtgeneratorApplication {
 	public static Integer diasDelMes=30;
 
 	public static String buildCabecera() {
+		System.out.println("Building cabecera");
 		String toReturn = CABECERA + "\n";
 		toReturn += "30-70896790-0;;11/01/2022;12-21;JUNTOS EN CASA S.R.L.;1;UP30708967900;18779\n";
 		toReturn += "RED\n";
@@ -149,8 +150,10 @@ public class TxtgeneratorApplication {
 	}
 
 	public static String buildAmbulatorio(List<Visita> listaVisitas,List<Frecuencia> listafrecuencias) {
+		System.out.println("Building ambulatorio");
 		String toReturn="";
 		Map<String,List<Visita>> mapAfiliadosVisitas=new HashMap<String,List<Visita>>();
+		List<Insumo> listaInsumosEstaticos=processInsumosEstaticos();
 		for (Visita visita1 : listaVisitas) {
 			if(mapAfiliadosVisitas.get(visita1.nroAfiliado)  ==null){//si el afiliado no existe en el map
 				mapAfiliadosVisitas.put(visita1.nroAfiliado, new ArrayList<Visita>());//se agrega el afiliado y se crea la lista de visitas para ese afiliado
@@ -173,8 +176,13 @@ public class TxtgeneratorApplication {
 				toReturn+="30-70896790-0;;137819;0;0;0;1;0;"+fechaVisitaSinHora+";;;2;"+frecuencia.nroOp+";;"+nroAfiliacionRecortado+";00"+"\n";
 				toReturn+=";;;0;1;I64;1\n";
 				toReturn+=REL_PRACTICASREALIZADASXAMBULATORIO+"\n";
-				if("01/06/2022".equals(fechaVisitaSinHora)){//primer dia del mes
+				String insumosEstaticosParaPracticasSolicitadas="";
+				if("01/06/2022".equals(fechaVisitaSinHora)){//primer dia del mes aca van estaticos los insumos y otro servicio
 					toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2:"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
+					for (Insumo insumo : getInsumosEstaticosByNroBeneficiarioAndNroOp(visita.nroAfiliado, frecuencia.nroOp, listaInsumosEstaticos)) {//recorro todos los insumos estaticos para ese benef y nro de op
+						toReturn+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2:"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
+						insumosEstaticosParaPracticasSolicitadas+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";0;1"+"\n";
+					}
 				}
 				//aca arranca la creacion dinamica de REL_PRACTICASREALIZADASXAMBULATORIO
 			//tengo que traerme una lista de visitas de la misma fecha y del mismo afiliado y eso ponerlo en un ciclo para ir buscando si existe en la tabla de frecuencias para esa op
@@ -182,6 +190,9 @@ public class TxtgeneratorApplication {
 			String practicasSolicitadas="";
 			if("01/06/2022".equals(fechaVisitaSinHora)){//solo va el primer dia del mes
 			practicasSolicitadas+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";0;1"+"\n";
+			if (insumosEstaticosParaPracticasSolicitadas!="") {
+				practicasSolicitadas+=insumosEstaticosParaPracticasSolicitadas;
+			}
 			}
 			//REL_PRACTICASREALIZADASXAMBULATORIO
 			//bloque para agrupar por tipo de servicio y saber ya cuantos hay de cada uno por dia
@@ -231,6 +242,7 @@ public class TxtgeneratorApplication {
 	}
 
 	public static String buildBeneficio(List<Afiliado> listAfiliados) {
+		System.out.println("Building beneficio");
 		String toReturn = BENEFICIO + "\n";
 		for (Afiliado afiliado : listAfiliados) {
 			/*
@@ -251,6 +263,7 @@ public class TxtgeneratorApplication {
 	}
 
 	public static String buildAfiliado(List<Afiliado> listAfiliados) {
+		System.out.println("Building afiliado");
 		// formato PIZARRO, LUISA TERESA;DNI;3777932;1;1;1;SARMIENTO;265;6;;;66988654;16/07/1938;F;;;015020869111;00;;;;;;;;
 
 		String toReturn = AFILIADO + "\n";
@@ -435,14 +448,109 @@ public static List<Frecuencia> processFrecuenciaAndOp(){
 				//System.out.println("value:"+ cell.getStringCellValue());
 			}
 		}
+		
+		}
 		if(rowCounter!=0 && rowCounter!=1){
 			listaFrecuencias.add(frecuencia);
-		}
 		}
 		rowCounter++;
 	}
 	return listaFrecuencias;
 }
+
+public static List<Insumo> getInsumosEstaticosByNroBeneficiarioAndNroOp(String nroBeneficiarioParam,String nroOpParam,List<Insumo> listaInsumos){
+	//System.out.println("in getInsumosEstaticosByNroBeneficiarioAndNroOp");
+	List<Insumo> insumosEstaticosToReturn=new ArrayList<>();
+	Set<String> serviciosYaCargados=new HashSet<>();
+	for (Insumo insumo : listaInsumos) {
+		//System.out.println("insumo nro beneficiario: "+ insumo.nroBeneficiario+ " insumo nroOP:"+ insumo.nroOp + " param nro beneficiario: "+ nroBeneficiarioParam+" nro op param:"+ nroOpParam);
+		if (insumo.nroBeneficiario.equals(nroBeneficiarioParam) && insumo.nroOp.equals(nroOpParam)) {//si encuentro el beneficiario y el op entonces debo retornar el insumo estatico en la lista pero cuidando de no repetir codigos de servicio porque hay duplicados
+			if (!serviciosYaCargados.contains(insumo.codigo)) {//si su codigo aun no fue cargado entonces si se debe retornar
+				//System.out.println("insumo encontrado: "+ insumo.codigo);
+				insumosEstaticosToReturn.add(insumo);//se agrega el insumo a la lista
+				serviciosYaCargados.add(insumo.codigo);//se agrega tambien el codigo al set para ya no tomarlo para este beneficiario y op
+			}
+		}
+	}
+	return insumosEstaticosToReturn;
+}
+
+public static List<Insumo> processInsumosEstaticos(){
+	Sheet sheet =readFileXlsx(basicPath+"insumos estaticos.xlsx");
+	System.out.println("reading insumos estaticos**********************************");
+	List<Integer> columnsToTake=new ArrayList<Integer>();
+	columnsToTake.add(0);//nro beneficiario
+	columnsToTake.add(1);//nro op
+	columnsToTake.add(2);//tipo servicio
+	columnsToTake.add(3);//codigo
+	columnsToTake.add(4);//frecuencia
+	columnsToTake.add(5);//ocurrencia
+	List<Insumo> listaInsumosEstaticos=new ArrayList<Insumo>();
+	Integer rowCounter=0;
+	for (Row row : sheet) {// rows
+		Insumo insumo=new Insumo();
+		for (Cell cell : row) {// columns
+			if (columnsToTake.contains(cell.getColumnIndex()) ) {
+			switch (cell.getCellType()) {
+				case STRING:
+				//System.out.println("columna : "+ cell.getColumnIndex() + " tiene el valor: "+ cell.getStringCellValue());
+				if (cell.getColumnIndex()==0) {
+					insumo.nroBeneficiario=cell.getStringCellValue();
+				}else	if (cell.getColumnIndex()==1) {
+					insumo.nroOp=cell.getStringCellValue();
+					}else if(cell.getColumnIndex()==2){//nro documento
+						insumo.ts=cell.getStringCellValue();//tipo de servicio descripcion de insumo
+					}else if(cell.getColumnIndex()==3){//nro documento
+						insumo.codigo=cell.getStringCellValue();//codigo que van en el txt
+					}else if(cell.getColumnIndex()==4){//nro documento
+						insumo.frecuencia=cell.getStringCellValue();//frecuencia
+					}else if(cell.getColumnIndex()==5){//ocurrencia
+						insumo.ocurrencia=cell.getStringCellValue();//ocurrencia
+					}
+					break;
+				case NUMERIC:
+					DataFormatter formatter = new DataFormatter(); // creating formatter using the default locale
+					String formatedData = formatter.formatCellValue(cell); // Returns the formatted value of a cell	// as a String regardless of the cell// type.
+					//System.out.println("formated data: " +formatedData);
+					if (cell.getColumnIndex()==0) {
+						insumo.nroBeneficiario=formatedData;
+					}else	if (cell.getColumnIndex()==1) {
+						insumo.nroOp=formatedData;
+						}else if(cell.getColumnIndex()==2){//nro documento
+							insumo.ts=formatedData;//tipo de servicio descripcion de insumo
+						}else if(cell.getColumnIndex()==3){//nro documento
+							insumo.codigo=formatedData;//codigo que van en el txt
+						}else if(cell.getColumnIndex()==4){//nro documento
+							insumo.frecuencia=formatedData;//frecuencia
+						}else if(cell.getColumnIndex()==5){//ocurrencia
+							insumo.ocurrencia=formatedData;//ocurrencia
+						}
+					break;
+				case BOOLEAN:
+				System.out.println("boolean : "+ cell.getColumnIndex());
+					// txtContent += cell.getBooleanCellValue() + ";";
+					break;
+				case FORMULA:
+				System.out.println("formula matchDatosAfiliados: "+ cell.getColumnIndex());
+					// txtContent += cell.getStringCellValue() + ";";
+					break;
+				default:
+				//System.out.println("default : "+ cell.getColumnIndex());
+				//System.out.println("value:"+ cell.getStringCellValue());
+			}
+		}
+		
+		
+	}
+	if(rowCounter!=0 ){
+		//System.out.println(insumo.toString());
+		listaInsumosEstaticos.add(insumo);
+	}
+	rowCounter++;
+		}
+		return listaInsumosEstaticos;
+}
+
 
 public static List<Afiliado>  matchDatosAfiliados(List<Afiliado> listAfiliadosParam){
 	Sheet sheet =readFileXlsx(basicPath+"DATOS PERSONALES_TXT.xlsx");
@@ -515,9 +623,11 @@ public static List<Afiliado>  matchDatosAfiliados(List<Afiliado> listAfiliadosPa
 				//System.out.println("value:"+ cell.getStringCellValue());
 			}
 		}
-		if(rowCounter!=0 && rowCounter!=1){
-			listaAfiliados.add(afiliado);
+		
 		}
+		if(rowCounter!=0 && rowCounter!=1){
+			//System.out.println(afiliado);
+			listaAfiliados.add(afiliado);
 		}
 		rowCounter++;
 		if(listaAfiliados !=null && !listaAfiliados.isEmpty()){
@@ -584,9 +694,10 @@ public static List<Afiliado>  matchFechaAfiliado(List<Afiliado> listAfiliadosPar
 				//System.out.println("value:"+ cell.getStringCellValue());
 			}
 		}
-		if(rowCounter!=0 && rowCounter!=1){
-			listaAfiliados.add(afiliado);
+		
 		}
+		if(rowCounter!=0 ){
+			listaAfiliados.add(afiliado);
 		}
 		rowCounter++;
 		if(listaAfiliados !=null && !listaAfiliados.isEmpty()){

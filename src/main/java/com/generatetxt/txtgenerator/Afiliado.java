@@ -12,6 +12,14 @@ public class Afiliado {
    public String nroCalle;
    public String piso;
 
+   @Override
+   public String toString() {
+      return "Afiliado [dni=" + dni + ", domicilio=" + domicilio + ", fechaAfiliacion=" + fechaAfiliacion
+            + ", fechaNacimiento=" + fechaNacimiento + ", genero=" + genero + ", nombreAfiliado=" + nombreAfiliado
+            + ", nroAfiliacion=" + nroAfiliacion + ", nroCalle=" + nroCalle + ", piso=" + piso + ", tipoDocumento="
+            + tipoDocumento + "]";
+   }
+
    public String getFechaNacimiento() {
       return fechaNacimiento;
    }
