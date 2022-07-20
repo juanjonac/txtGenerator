@@ -1,6 +1,7 @@
 package com.generatetxt.txtgenerator;
 
 public class Frecuencia {
+   public String idFrecuencia;
    public String nroAfiliado;
    public String nroOp;
    public String tipoServicio;

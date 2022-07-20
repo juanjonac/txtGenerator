@@ -51,11 +51,108 @@ public class TxtgeneratorApplication {
 	public static String REL_PRACTICASSOLICITADASXAMBULATORIO = "REL_PRACTICASSOLICITADASXAMBULATORIO";
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
 	public static Integer diasDelMes=30;
+	public static String primerDiaMes="01/06/2022";
+	public static String selectedUgl="06";//06,10,11,31
+
+	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
+
+	
+
+	public static String getCodigoAmbulatorioSegunUgl(String ugl) {
+		String toReturn="";
+		if(ugl.equals("10")){
+			toReturn="137819";
+		}else if(ugl.equals("11")){
+			toReturn="34292";
+		}else if(ugl.equals("31")){
+			toReturn="62931";
+		}else if(ugl.equals("06")){
+			toReturn="35986";
+		}
+		return toReturn;
+	}
 
 	public static String buildCabecera() {
-		System.out.println("Building cabecera");
+		String toReturn="";
+		if(selectedUgl.equals("10")){
+			toReturn=buildCabeceraUgl10();
+		}else if(selectedUgl.equals("11")){
+			toReturn=buildCabeceraUgl11();
+		}else if(selectedUgl.equals("31")){
+			toReturn=buildCabeceraUgl31();
+		}else if(selectedUgl.equals("06")){
+			toReturn=buildCabeceraUgl06();
+		}
+		return toReturn;
+	}
+
+	public static String buildCabeceraUgl06() {
+		System.out.println("Building cabecera ugl 06");
 		String toReturn = CABECERA + "\n";
-		toReturn += "30-70896790-0;;11/01/2022;12-21;JUNTOS EN CASA S.R.L.;1;UP30708967900;18779\n";
+		toReturn += "30-70896790-0;;11/01/2022;"+mesAño+";JUNTOS EN CASA S.R.L.;1;UP30708967900N2;58342\n";
+		toReturn+="RED"+"\n";
+		toReturn+="30-70896790-0;;;0;JUN;JUNTOS EN CASA S.R.L.;0;Av. Corrientes 2589;0;;;;"+"\n";
+		toReturn+="PROFESIONAL"+"\n";
+		toReturn+=";;;0;PAGLILLA, JOSE MARIA;1;35986; ;DNI;4406216;20044062160;SIN SUMINISTRAR;0;;;;"+"\n";
+		toReturn+="PRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;;;0;;;1;;0;info@juntosencasa.com.ar;15/02/2018;;;;0;0;0;JUNTOS EN CASA S.R.L.;Av. Corrientes 2589;0;;;;;"+"\n";
+		toReturn+="REL_PROFESIONALESXPRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;"+getCodigoAmbulatorioSegunUgl(selectedUgl)+";0;0;"+"\n";
+		toReturn+="BOCA_ATENCION"+"\n";
+		toReturn+=";30-70896790-0;;0;1;6;Av. Corrientes 2589;0;;17;;"+"\n";
+		toReturn+="REL_MODULOSXPRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;;0;95;"+"\n";
+		toReturn+="REL_PRESTADORESXRED"+"\n";
+		toReturn+="30-70896790-0;30-70896790-0;;0;0;"+"\n";
+		return toReturn;
+	}
+
+	public static String buildCabeceraUgl31() {
+		System.out.println("Building cabecera ugl 31");
+		String toReturn = CABECERA + "\n";
+		toReturn+="30-70896790-0;;10/01/2022;"+mesAño+";JUNTOS EN CASA S.R.L.;1;UP30708967900N1;49507"+"\n";
+		toReturn+="RED"+"\n";
+		toReturn+="30-70896790-0;;;0;JUN;JUNTOS EN CASA S.R.L.;0;Av. Corrientes 2589;0;;;;"+"\n";
+		toReturn+="PROFESIONAL"+"\n";
+		toReturn+=";;;0;OYHANARTE BELMONTE, FABIAN JUL;1;62931; ;DNI;21500612;20215006124;SIN SUMINISTRAR;0;;;;"+"\n";
+		toReturn+="PRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;;;0;;;1;;0;info@juntosencasa.com.ar;16/04/2017;;;;0;0;0;JUNTOS EN CASA S.R.L.;Av. Corrientes 2589;0;;;;;"+"\n";
+		toReturn+="REL_PROFESIONALESXPRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;"+getCodigoAmbulatorioSegunUgl(selectedUgl)+";0;0;"+"\n";
+		toReturn+="BOCA_ATENCION"+"\n";
+		toReturn+=";30-70896790-0;;0;1;6;Av. Corrientes 2589;0;;17;;"+"\n";
+		toReturn+="REL_MODULOSXPRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;;0;95;"+"\n";
+		toReturn+="REL_PRESTADORESXRED"+"\n";
+		toReturn+="30-70896790-0;30-70896790-0;;0;0;"+"\n";
+		return toReturn;
+	}
+
+	public static String buildCabeceraUgl11() {
+		System.out.println("Building cabecera ugl 11");
+		String toReturn = CABECERA + "\n";
+		toReturn+="30-70896790-0;;11/01/2022;"+mesAño+";JUNTOS EN CASA S.R.L.;1;UP30708967900N6;61594"+"\n";
+		toReturn+="RED"+"\n";
+		toReturn+="30-70896790-0;;;0;JUN;JUNTOS EN CASA S.R.L.;0;Av. Corrientes 2589;0;;;;"+"\n";
+		toReturn+="PROFESIONAL"+"\n";
+		toReturn+=";;;0;CRESPO ENRIQUE LADISLAO;1;34292; ;DNI;5929263;20059292634;SIN SUMINISTRAR;0;;;;"+"\n";
+		toReturn+="PRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;;;0;;;1;;0;info@juntosencasa.com.ar;15/01/2019;;;;0;0;0;JUNTOS EN CASA S.R.L.;Av. Corrientes 2589;0;;;;;"+"\n";
+		toReturn+="REL_PROFESIONALESXPRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;"+getCodigoAmbulatorioSegunUgl(selectedUgl)+";0;0;"+"\n";
+		toReturn+="BOCA_ATENCION"+"\n";
+		toReturn+=";30-70896790-0;;0;1;6;Av. Corrientes 2589;0;;17;;"+"\n";
+		toReturn+="REL_MODULOSXPRESTADOR"+"\n";
+		toReturn+=";30-70896790-0;;0;95;"+"\n";
+		toReturn+="REL_PRESTADORESXRED"+"\n";
+		toReturn+="30-70896790-0;30-70896790-0;;0;0;"+"\n";
+		return toReturn;
+	}
+
+	public static String buildCabeceraUgl10() {
+		System.out.println("Building cabecera ugl 10");
+		String toReturn = CABECERA + "\n";
+		toReturn += "30-70896790-0;;11/01/2022;"+mesAño+";JUNTOS EN CASA S.R.L.;1;UP30708967900;18779\n";
 		toReturn += "RED\n";
 		toReturn += "30-70896790-0;;;0;JUN;JUNTOS EN CASA S.R.L.;0;Av. Corrientes 2589;0;;;;\n";
 		toReturn += "PROFESIONAL\n";
@@ -63,7 +160,7 @@ public class TxtgeneratorApplication {
 		toReturn += "PRESTADOR\n";
 		toReturn += ";30-70896790-0;;;0;;;1;;0;info@juntosencasa.com.ar;01/07/2012;;;;0;0;0;JUNTOS EN CASA S.R.L.;Av. Corrientes 2589;0;;;;;\n";
 		toReturn += "REL_PROFESIONALESXPRESTADOR\n";
-		toReturn += ";30-70896790-0;137819;0;0;\n";
+		toReturn += ";30-70896790-0;"+getCodigoAmbulatorioSegunUgl(selectedUgl)+";0;0;\n";
 		toReturn += "BOCA_ATENCION\n";
 		toReturn += ";30-70896790-0;;0;1;6;Av. Corrientes 2589;0;;17;;\n";
 		toReturn += "REL_MODULOSXPRESTADOR\n";
@@ -113,7 +210,7 @@ public class TxtgeneratorApplication {
 	public static Integer calcularFrecuenciaMaxima(String frecuencia,Integer ocurrencia){
 		Integer frecuenciaMaximaToReturn=0;
 		if(frecuencia.toUpperCase().equals("DIA")){//si la frecuencia es diaria multiplicamos la ocurrencia por 30 que son los dias de junio ejemplo si es 2 veces por dias puede tener hasta 60 visitas
-			frecuenciaMaximaToReturn=ocurrencia*30;
+			frecuenciaMaximaToReturn=1;
 		}else if(frecuencia.toUpperCase().equals("MES")){//si la frecuencia es mensual va directament el nro de ocurrencia como maximo porque solo procesamos 1 mes 
 			frecuenciaMaximaToReturn=ocurrencia;
 		}else if(frecuencia.toUpperCase().equals("SEMANA")){//si la frecuencia es semanal tenemos que multiplicar la ocurrencia x 4 por ejemplo si la ocurrencia es 2 pueden haber como maximo 8 visitas en el mes
@@ -136,14 +233,36 @@ public class TxtgeneratorApplication {
 	public static List<Visita> groupVisitasByFecha(List<Visita> listaVisitasParam){
 		Set<String> fechas=new HashSet<String>();
 		List<Visita> visitasToReturn = new ArrayList<Visita>();
+		boolean tieneVisitasElPrimerDiaDelMes=false;
 		for (Visita visita : listaVisitasParam) {
 			String fechaVisitaRecortada=visita.fechaComienzo.split(" ")[0];
+			if (fechaVisitaRecortada.equals("01/06/2022")) {//si tiene visitas el 1 del mes poner en true el flag para no agregar nada
+				tieneVisitasElPrimerDiaDelMes=true;
+			}
 			//System.out.println("fecha de visita cortada: "+ fechaVisitaRecortada);
 			if (!fechas.contains(fechaVisitaRecortada)) {//aca lo que hago es agrupar y devolver solo visitas de fechas distintas porque en el txt se agrupa asi en ambulatorio
+				//System.out.println("fecha para retornar: "+ fechaVisitaRecortada);
 				visitasToReturn.add(visita);
 				fechas.add(fechaVisitaRecortada);//se agrega esa fecha para tomarla como unica y devolver solo fechas diferentes
 			}else{
 				//System.out.println("fecha repetida: "+ fechaVisitaRecortada);
+			}
+		}
+		if (!tieneVisitasElPrimerDiaDelMes) {//si no tiene visitas el primer dia del mes entonces agregar en la primera posicion
+			//System.out.println("no tiene primer visitas el primer dia");
+			List<Visita> visitasToReturnAux=new ArrayList<>();
+			for (int i = 0; i < visitasToReturn.size(); i++) {
+				if(i==0){//en la primera posicion agrego una visita fake sin nada para que despues ambulatorio lo tome y le ponga los estaticos aunque no haya visitas ese primer dia
+					Visita visitaFake=new Visita();
+					visitaFake.tipoServicio="primer dia";
+					visitasToReturnAux.add(visitaFake);//primero se agrega la visita fake 
+					visitasToReturnAux.add(visitasToReturn.get(i));//luego se agrega la visita normal
+				}else{
+					visitasToReturnAux.add(visitasToReturn.get(i));//luego de pasar por el primer lugar se agregan todos los demas de manera normal
+				}
+			}
+			if (visitasToReturnAux!=null && !visitasToReturnAux.isEmpty()) {
+				visitasToReturn=visitasToReturnAux;//se agrga la nueva lista con la visita fake en la primera posicion
 			}
 		}
 		return visitasToReturn;
@@ -164,23 +283,37 @@ public class TxtgeneratorApplication {
 			
 		}
 		for (String s : mapAfiliadosVisitas.keySet()) {//recorro primero por afiliado el orden es : se recorre primero un afiliado hasta terminar todas las fechas y asi continuar con el siguiente
+			boolean isPrimerDia=true;//para manejar los estaticos aun que no haya visitas
 			for (Visita visita : groupVisitasByFecha(mapAfiliadosVisitas.get(s))) {//por cada afiliado obtengo la lista de visitas de fechas distintas
-			
+			if (isPrimerDia && visita.tipoServicio.equals("primer dia")) {
+				//System.out.println("es el primer dia de este beneficiario pero fake");
+				visita.nroAfiliado=s;//le cargo el nro de afiliado
+				visita.fechaComienzo=primerDiaMes;
+			}
 			//visita.nroAfiliado y visita.tipoServicio
 			
 			String fechaVisitaSinHora=visita.fechaComienzo.split(" ")[0];
 			String nroAfiliacionRecortado=visita.nroAfiliado.substring(0,visita.nroAfiliado.length()-2);//le sacamos los ultimos 2 digitos
+			nroAfiliacionRecortado=procesarNroAfiliacion(nroAfiliacionRecortado);//tambien se le agrega los 0 adelante que sean necesarios para completar 12 caracteres
+			String ultimosNrosRecortados=visita.nroAfiliado.substring(visita.nroAfiliado.length()-2,visita.nroAfiliado.length());
 			Frecuencia frecuencia=getFrecuencia(visita.nroAfiliado, visita.tipoServicio, listafrecuencias);
+			if (isPrimerDia && visita.tipoServicio.equals("primer dia")) {//aca vuelvo a obtener la frecuencia estatica si es el primer dia y no tiene visitas
+				frecuencia=getFrecuenciaByNroAfiliado(visita.nroAfiliado,listafrecuencias);
+				if (frecuencia !=null) {
+					//System.out.println("buscar esta frecuencia para control txt: " + frecuencia.nroAfiliado);
+				}
+				isPrimerDia=false;//se pone en falso una vez que se procesa
+			}
 			if (frecuencia !=null) {
 				toReturn += AMBULATORIO + "\n";
-				toReturn+="30-70896790-0;;137819;0;0;0;1;0;"+fechaVisitaSinHora+";;;2;"+frecuencia.nroOp+";;"+nroAfiliacionRecortado+";00"+"\n";
+				toReturn+="30-70896790-0;;"+getCodigoAmbulatorioSegunUgl(selectedUgl)+";0;0;0;1;0;"+fechaVisitaSinHora+";;;2;"+frecuencia.nroOp+";;"+nroAfiliacionRecortado+";"+ultimosNrosRecortados+"\n";
 				toReturn+=";;;0;1;I64;1\n";
 				toReturn+=REL_PRACTICASREALIZADASXAMBULATORIO+"\n";
 				String insumosEstaticosParaPracticasSolicitadas="";
 				if("01/06/2022".equals(fechaVisitaSinHora)){//primer dia del mes aca van estaticos los insumos y otro servicio
-					toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2:"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
+					toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
 					for (Insumo insumo : getInsumosEstaticosByNroBeneficiarioAndNroOp(visita.nroAfiliado, frecuencia.nroOp, listaInsumosEstaticos)) {//recorro todos los insumos estaticos para ese benef y nro de op
-						toReturn+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2:"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
+						toReturn+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
 						insumosEstaticosParaPracticasSolicitadas+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";0;1"+"\n";
 					}
 				}
@@ -206,7 +339,7 @@ public class TxtgeneratorApplication {
 				}
 			}//cuando termina este for yo ya se cuantos hay de cada servicio
 			//bloque para agrupar por tipo de servicio y saber ya cuantos hay de cada uno por dia
-
+			Set<String> idsFrecuencia=new HashSet<>();
 			for (Visita visitaFiltrada : getVisitasByFechaYAfiliado( fechaVisitaSinHora,visita.nroAfiliado, listaVisitas)) {
 				Frecuencia frecuencia2=getFrecuenciaByNroOp(listafrecuencias, frecuencia.nroOp, visitaFiltrada.tipoServicio);
 				if (frecuencia2 !=null && mapTipoServicioCantidad !=null && mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) !=null ) {//si esto pasa significa que esa visita existe en la lista de frecuencias entonces hay que ponerla en la lista pero cuidando las ocurrencias que no sobre pase el limite
@@ -214,11 +347,19 @@ public class TxtgeneratorApplication {
 						toReturn+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";2;"+frecuencia2.nroOp +"\n";
 					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
 					}else{
-						System.out.println("sobre paso la cantidad maxima: "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
+						//System.out.println("sobre paso la cantidad maxima: "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
 						toReturn+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia))+";2;"+frecuencia2.nroOp +"\n";
 					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia))+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
 					}
-									
+					if (fechaVisitaSinHora.equals("01/06/2022") &&frecuencia2.codTipoServicio.equals("227012") && frecuencia2.nroOp.equals("9920794850")) {
+						System.out.println("cantidades "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
+					}
+					if (fechaVisitaSinHora.equals("01/06/2022") && frecuencia2.nroOp.equals("9920794850")) {
+						//&& frecuencia2.codTipoServicio.equals("227011") && frecuencia2.nroOp.equals("9920794850")
+						System.out.println(visitaFiltrada.toString()); 
+						System.out.println("cantidades  227011"+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
+					}
+					//listafrecuencias.remove(frecuencia2);//indicar que esa frecuencia ya la tome , ahora tomar otra
 					mapTipoServicioCantidad.remove(visitaFiltrada.tipoServicio);//de aca saco el servicio para ya no usarlo para ese dia , de esa forma va solo uno con el conteo gral
 				}else{
 					if (frecuencia2 !=null) {
@@ -241,6 +382,36 @@ public class TxtgeneratorApplication {
 		return toReturn;
 	}
 
+	private static Frecuencia getFrecuenciaByNroAfiliado(String nroAfiliadoParam,List<Frecuencia> listafrecuencias) {
+		Frecuencia frecuenciaToReturn=null;
+		for (Frecuencia frecuencia : listafrecuencias) {
+			if (frecuencia.nroAfiliado.equals(nroAfiliadoParam)) {//se busca la frecuencia para obtener el codigo estatico
+				frecuenciaToReturn=frecuencia;//aca devuelvo cualquiera porque todos tienen el mismo codigo estatico para un mismo afiliado
+			}
+		}
+		return frecuenciaToReturn;
+	}
+
+	public static String procesarNroAfiliacion(String nroAfiliacionParaProcesar){
+		String toReturn="";
+		if (nroAfiliacionParaProcesar.length()<12) {
+			if (nroAfiliacionParaProcesar.length() ==11) {
+				toReturn="0"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==10){
+				toReturn="00"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==9){
+				toReturn="000"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==8){
+				toReturn="0000"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==7){
+				toReturn="00000"+nroAfiliacionParaProcesar;
+			}
+		}else{
+			toReturn=nroAfiliacionParaProcesar;
+		}
+		return toReturn;
+	}
+
 	public static String buildBeneficio(List<Afiliado> listAfiliados) {
 		System.out.println("Building beneficio");
 		String toReturn = BENEFICIO + "\n";
@@ -249,13 +420,21 @@ public class TxtgeneratorApplication {
 			 * removevos los 2 ultimos caracteres del nro de afiliacion para hacer coincidir
 			 * con el formato del txt en beneficio
 			 */
-			if (afiliado.getNroAfiliacion() != null && afiliado.getNombreAfiliado() != null && afiliado.getFechaAfiliacion()!=null) {
-				toReturn += ";;;" + afiliado.getNroAfiliacion().substring(0, afiliado.getNroAfiliacion().length() - 2);
+			if (afiliado.getNroAfiliacion() != null && afiliado.getNombreAfiliado() != null ) {
+				String fechaAfiliacion= afiliado.getFechaAfiliacion();
+				if (fechaAfiliacion==null || fechaAfiliacion=="" || fechaAfiliacion=="null") {
+					fechaAfiliacion="01/06/2022";
+				}
+				
+				String nroAfiliadoParaProcesar=afiliado.getNroAfiliacion().substring(0, afiliado.getNroAfiliacion().length() - 2);
+				String nroAfiliacionProcesado=procesarNroAfiliacion( nroAfiliadoParaProcesar);
+				toReturn += ";;;" + nroAfiliacionProcesado;
 				String apellido = afiliado.getNombreAfiliado().split(" ")[0];
 				String nombre = afiliado.getNombreAfiliado().split(" ")[1];
-				toReturn += ";10;" + apellido + ", " + nombre + ";1;"+afiliado.getFechaAfiliacion() +"\n";
+				toReturn += ";10;" + apellido + ", " + nombre + ";1;"+fechaAfiliacion +"\n";
+				//System.out.println(";;;" + nroAfiliacionProcesado+";10;" + apellido + ", " + nombre + ";1;"+fechaAfiliacion +"\n");
 			} else {
-				//System.out.println("nro afiliacion: " + afiliado.getNroAfiliacion() + " nombre afiliado : "+ afiliado.getNombreAfiliado());
+				
 			}
 		}
 
@@ -268,6 +447,7 @@ public class TxtgeneratorApplication {
 
 		String toReturn = AFILIADO + "\n";
 		for (Afiliado afiliado : listAfiliados) {
+			
 				if(afiliado.getPiso()==null){
 					afiliado.setPiso("");
 				}
@@ -275,11 +455,16 @@ public class TxtgeneratorApplication {
 					afiliado.setNroCalle("0");
 				}
 			if (afiliado.getNroAfiliacion() != null && afiliado.getNombreAfiliado() != null && afiliado.getTipoDocumento()!=null && afiliado.getDni() !=null && afiliado.getDomicilio() !=null) {
+				if (afiliado.getNroAfiliacion().equals("11095379790800")) {//este caso de que se repite pasa porque al cortar los 2 ultimos caracteres de cada uno quedan igual
+					System.out.println(afiliado.toString());
+				}
 				String nroAfiliacionCortado=afiliado.getNroAfiliacion().substring(0, afiliado.getNroAfiliacion().length() - 2);
+				String ultimosNroCortatos=afiliado.getNroAfiliacion().substring(afiliado.getNroAfiliacion().length() - 2, afiliado.getNroAfiliacion().length());
+				String nroAfiliacionProcesado=procesarNroAfiliacion( nroAfiliacionCortado);
 				String apellido = afiliado.getNombreAfiliado().split(" ")[0];
 				String nombre = afiliado.getNombreAfiliado().split(" ")[1];
-				toReturn += apellido + ", " + nombre+";"+afiliado.getTipoDocumento()+";"+afiliado.getDni()+";1;1;1;"+afiliado.getDomicilio()+";"+afiliado.getNroCalle()+";"+afiliado.getPiso()+";;;";
-				toReturn+=";"+afiliado.getFechaNacimiento()+";"+afiliado.getGenero()+";;;"+nroAfiliacionCortado+";00;;;;;;;;\n";
+				toReturn += apellido + ", " + nombre+";"+afiliado.getTipoDocumento().toUpperCase()+";"+afiliado.getDni()+";1;1;1;"+afiliado.getDomicilio()+";"+afiliado.getNroCalle()+";"+afiliado.getPiso()+";;;";
+				toReturn+=";"+afiliado.getFechaNacimiento()+";"+afiliado.getGenero()+";;;"+nroAfiliacionProcesado+";"+ultimosNroCortatos+";;;;;;;;\n";
 			} else {
 				//System.out.println("nro afiliacion: " + afiliado.getNroAfiliacion() + " nombre afiliado : "+ afiliado.getNombreAfiliado());
 			}
@@ -363,7 +548,7 @@ public class TxtgeneratorApplication {
 		if (columnIndex == 7) {// 7 es nombre
 			afiliado.setNombreAfiliado(value);
 		} else if (columnIndex == 6) {
-			if (!nrosAfiliados.contains(value)) {
+			if (!nrosAfiliados.contains(value)) { 
 				nrosAfiliados.add(value);
 				afiliado.setNroAfiliacion(value);
 			}
@@ -405,6 +590,8 @@ public static void processFrecuencia(Frecuencia frecuencia,String  value,Integer
 		frecuencia.ocurrencia=value;
 	}else if(columnIndex==6){
 		frecuencia.codigoEstatico=value;
+	}else if(columnIndex==7){
+		frecuencia.idFrecuencia=value;//esta es una columna que agregue para tener in id en la frecuencia y no tomarla mas , porque hay mas de 1 frecuencia por nro de op y beneficiario
 	}
 }
 
@@ -543,12 +730,31 @@ public static List<Insumo> processInsumosEstaticos(){
 		
 	}
 	if(rowCounter!=0 ){
-		//System.out.println(insumo.toString());
-		listaInsumosEstaticos.add(insumo);
+		if (insumo !=null && insumo.codigo!=null && insumo.frecuencia!=null && insumo.nroBeneficiario!=null && insumo.nroOp!=null && insumo.ocurrencia!=null && insumo.ts!=null) {//solo se agregan los insumos que se cargaron
+			listaInsumosEstaticos.add(insumo);
+		}
 	}
 	rowCounter++;
 		}
+		
 		return listaInsumosEstaticos;
+}
+
+public static List<Afiliado> getAfiliadosByUgl(List<Visita> visitas,List<Afiliado> afiliadosParam){
+	List<Afiliado> afiliadosToReturn=new ArrayList<>();
+	Set<String> nroAfiliados=new HashSet<>();
+	for (Visita visita : visitas) {
+		for (Afiliado afiliado : afiliadosParam) {
+		//por cada visita checkear si ese afiliado debe estar en la lista de afiliados segun ugl
+		if (visita.nroAfiliado.equals(afiliado.nroAfiliacion) && !nroAfiliados.contains(afiliado.nroAfiliacion) ) { //si coincide el nro de afiliado de la visita tengo que agregar ese afiliado a la lista , la otra condicion es para evitar repetidos
+			afiliadosToReturn.add(afiliado);
+			nroAfiliados.add(afiliado.nroAfiliacion);
+		}
+		}
+	}
+	
+	return afiliadosToReturn;
+
 }
 
 
@@ -787,20 +993,31 @@ public static List<Afiliado>  matchFechaAfiliado(List<Afiliado> listAfiliadosPar
 					columnCounter++;
 				}
 				if (i != 0) {
+					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15017703940700")*/){//06,10,11,31 ugl para generar distintos txt
+						listaVisitas.add(visita);
+					}
 					listaAfiliados.add(afiliado);
-					listaVisitas.add(visita);
+					
 				}
 				i++;
 			}
 			file2.close();//cerramos el archivo para leer otro
+
+			
 			// System.out.println(txtContent);
 			if (listaAfiliados != null && !listaAfiliados.isEmpty()) {
 				listaAfiliados=matchDatosAfiliados(listaAfiliados);//aca se buscan los datos personales restantes que estan en otro excel
 				listaAfiliados=matchFechaAfiliado(listaAfiliados);//aca se buscala fecha de afiliacion de otro excel
+				//filtrar solo los afiliados de esa ugl
+				System.out.println("cantidad de afiliados antes: " +listaAfiliados.size());
+				listaAfiliados=getAfiliadosByUgl(listaVisitas, listaAfiliados);
+				System.out.println("cantidad de afiliados despues: " +listaAfiliados.size());
+				//filtrar solo los afiliados de esa ugl
 				txtContent += buildBeneficio(listaAfiliados);
 				txtContent+= buildAfiliado(listaAfiliados);
 			}
 			if (listaVisitas!=null && !listaVisitas.isEmpty()) {
+				
 				List<Frecuencia> listaFrecuencias=processFrecuenciaAndOp();
 				if (listaFrecuencias !=null && !listaFrecuencias.isEmpty()) {
 					txtContent+=PRESTACIONES+"\n";

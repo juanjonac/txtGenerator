@@ -21,7 +21,13 @@ public class Afiliado {
    }
 
    public String getFechaNacimiento() {
-      return fechaNacimiento;
+      String fechaNacimientoToReturn="";
+      if(fechaNacimiento==null || fechaNacimiento.equals("")){
+         fechaNacimientoToReturn="";
+      }else{
+         fechaNacimientoToReturn=fechaNacimiento;
+      }
+      return fechaNacimientoToReturn;
    }
 
    public void setFechaNacimiento(String fechaNacimiento) {
@@ -56,6 +62,9 @@ public class Afiliado {
    }
 
    public String getDomicilio() {
+      if (domicilio!=null && domicilio.length()>30) {
+         domicilio=domicilio.substring(0, 30);
+      }
       return domicilio;
    }
 
