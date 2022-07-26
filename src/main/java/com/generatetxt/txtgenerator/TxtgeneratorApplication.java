@@ -1,5 +1,6 @@
 package com.generatetxt.txtgenerator;
 
+import org.apache.commons.collections4.functors.IfTransformer;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -33,7 +34,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class TxtgeneratorApplication {
 
-	public static String basicPath = "C:\\Users\\juanj\\Downloads\\";
+	public static String basicPath = "C:\\Users\\juanj\\OneDrive\\Documentos\\txtgenerator\\txtgenerator\\txt generated files\\planillas que se necesitan para generar el txt\\";
 	public static String fileName = basicPath + "visitas JUNIO2022.xlsx";
 	public static String CABECERA = "CABECERA";
 	public static String RED = "RED";
@@ -52,7 +53,7 @@ public class TxtgeneratorApplication {
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
 	public static Integer diasDelMes=30;
 	public static String primerDiaMes="01/06/2022";
-	public static String selectedUgl="06";//06,10,11,31
+	public static String selectedUgl="31";//06,10,11,31
 
 	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
 
@@ -209,12 +210,12 @@ public class TxtgeneratorApplication {
 
 	public static Integer calcularFrecuenciaMaxima(String frecuencia,Integer ocurrencia){
 		Integer frecuenciaMaximaToReturn=0;
-		if(frecuencia.toUpperCase().equals("DIA")){//si la frecuencia es diaria multiplicamos la ocurrencia por 30 que son los dias de junio ejemplo si es 2 veces por dias puede tener hasta 60 visitas
-			frecuenciaMaximaToReturn=1;
-		}else if(frecuencia.toUpperCase().equals("MES")){//si la frecuencia es mensual va directament el nro de ocurrencia como maximo porque solo procesamos 1 mes 
+		if(frecuencia.toUpperCase().equals("DIA")){
 			frecuenciaMaximaToReturn=ocurrencia;
-		}else if(frecuencia.toUpperCase().equals("SEMANA")){//si la frecuencia es semanal tenemos que multiplicar la ocurrencia x 4 por ejemplo si la ocurrencia es 2 pueden haber como maximo 8 visitas en el mes
-			frecuenciaMaximaToReturn=ocurrencia*4;
+		}else if(frecuencia.toUpperCase().equals("MES")){
+			frecuenciaMaximaToReturn=1;
+		}else if(frecuencia.toUpperCase().equals("SEMANA")){
+			frecuenciaMaximaToReturn=1;
 		}
 		return frecuenciaMaximaToReturn;
 	}
@@ -404,6 +405,25 @@ public class TxtgeneratorApplication {
 			}else if(nroAfiliacionParaProcesar.length() ==8){
 				toReturn="0000"+nroAfiliacionParaProcesar;
 			}else if(nroAfiliacionParaProcesar.length() ==7){
+				toReturn="00000"+nroAfiliacionParaProcesar;
+			}
+		}else{
+			toReturn=nroAfiliacionParaProcesar;
+		}
+		return toReturn;
+	}
+	public static String procesarNroAfiliacionParaCorrectUgl(String nroAfiliacionParaProcesar){//esto es para corregir el nro de afiliacion que a veces se pasa mal al excel 
+		String toReturn="";
+		if (nroAfiliacionParaProcesar.length()<14) {
+			if (nroAfiliacionParaProcesar.length() ==13) {
+				toReturn="0"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==12){
+				toReturn="00"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==11){
+				toReturn="000"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==10){
+				toReturn="0000"+nroAfiliacionParaProcesar;
+			}else if(nroAfiliacionParaProcesar.length() ==9){
 				toReturn="00000"+nroAfiliacionParaProcesar;
 			}
 		}else{
@@ -921,6 +941,78 @@ public static List<Afiliado>  matchFechaAfiliado(List<Afiliado> listAfiliadosPar
 	return listAfiliadosParam;
 }
 
+public static  Map<String,String>  readCorrectUgl(String filename){
+	Map<String,String> toReturn=new HashMap<>();
+	Sheet sheet =readFileXlsx(basicPath+filename);
+	System.out.println("reading ugl correcta Benef_UGL.xlsx**********************************");
+	List<Integer> columnsToTake=new ArrayList<Integer>();
+	columnsToTake.add(0);//nro beneficiario
+	columnsToTake.add(1);//ugl correcta
+	Integer rowCounter=0;
+	for (Row row : sheet) {// rows
+		String clave=null;
+		String clave2=null;//manejo 2 porque en algunos casos los nros de afiliados contienen 0 adelante en otros casos no es relativo
+			String valor=null;
+		for (Cell cell : row) {// columns
+			
+			if (columnsToTake.contains(cell.getColumnIndex()) ) {
+			switch (cell.getCellType()) {
+				case STRING:
+				if (cell.getColumnIndex() ==0) {
+					clave=procesarNroAfiliacionParaCorrectUgl(cell.getStringCellValue());
+					clave2=cell.getStringCellValue();
+				}else if(cell.getColumnIndex() ==1){
+					if (cell.getStringCellValue().equals("6") || cell.getStringCellValue().equals("06")) {
+						valor ="06";
+					}else {
+						valor =cell.getStringCellValue();//se setea la ugl
+					}
+				}
+					break;
+				case NUMERIC:
+					DataFormatter formatter = new DataFormatter(); // creating formatter using the default locale
+					String formatedData = formatter.formatCellValue(cell); // Returns the formatted value of a cell	// as a String regardless of the cell// type.
+					if (cell.getColumnIndex() ==0) {
+						clave=procesarNroAfiliacionParaCorrectUgl(formatedData);//se setea el nro de afiliado
+						clave2=formatedData;
+					}else if(cell.getColumnIndex() ==1){
+						if (formatedData.equals("6") || formatedData.equals("06")) {
+							valor ="06";//se setea la ugl
+						}else {
+							valor =formatedData;//se setea la ugl
+						}
+					}
+					break;
+				case BOOLEAN:
+				System.out.println("boolean : "+ cell.getColumnIndex());
+					// txtContent += cell.getBooleanCellValue() + ";";
+					break;
+				case FORMULA:
+				System.out.println("formula  reading ugl correcta: "+ cell.getCellFormula());
+								
+					break;
+				default:
+				//System.out.println("default : "+ cell.getColumnIndex());
+				//System.out.println("value:"+ cell.getStringCellValue());
+			}
+		}
+		
+		}
+		if(rowCounter!=0 ){
+			if (clave !=null && valor!=null ) {
+				toReturn.put(clave, valor);
+			}
+
+			if(clave2!=null && valor!=null){
+				toReturn.put(clave2, valor);
+			}
+		}
+		rowCounter++;
+	}
+	
+	return toReturn;
+}
+
 	public static void processXlsx(String fileName) {
 		try {
 			System.out.println("processXlsx****************************************************************");
@@ -943,6 +1035,7 @@ public static List<Afiliado>  matchFechaAfiliado(List<Afiliado> listAfiliadosPar
 			columnsToTake.add(12);//email responsable visita
 			columnsToTake.add(15);//ugl empresa prestadora
 			String txtContent = buildCabecera();
+			Map<String,String> mapCorrectUgl=readCorrectUgl("Benef_UGL.xlsx");//para las ugl correctas para los afiliados
 			List<Afiliado> listaAfiliados = new ArrayList<Afiliado>();
 			List<Visita> listaVisitas = new ArrayList<Visita>();
 			Set<String> nrosAfiliados = new HashSet<String>();
@@ -993,7 +1086,19 @@ public static List<Afiliado>  matchFechaAfiliado(List<Afiliado> listAfiliadosPar
 					columnCounter++;
 				}
 				if (i != 0) {
-					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15017703940700")*/){//06,10,11,31 ugl para generar distintos txt
+					//antes de cargar las visitas por ugl le asigno la ugl que le corresponde
+					if (mapCorrectUgl.get(visita.nroAfiliado) !=null) {
+						String uglCorrecta=mapCorrectUgl.get(visita.nroAfiliado);
+						//System.out.println("poniendo ugl correcta actual:"+ visita.uglEmpresaPrestadora+ " la que corresponde: "+ uglCorrecta );
+						if (!uglCorrecta.equals(visita.uglEmpresaPrestadora)) {
+							//System.out.println("ugl distinta encontrada:"+ visita.uglEmpresaPrestadora+ " la que corresponde: "+ uglCorrecta +" afiliado: "  +visita.nroAfiliado);
+							visita.uglEmpresaPrestadora=uglCorrecta;//si la ugl es distinta se impone la de la planilla de ugl
+						}
+					}else{//si no existe en el map quiere decir que no esta en la planilla y que no esta en la bd con lo cual se descarta
+						System.out.println("no existe en la tabla de ugls : "+ visita.nroAfiliado);
+						visita.uglEmpresaPrestadora="00";//agregando esto se descarta y no se carga al bloque de ambulatorio
+					}
+					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15043511480101")*/){//06,10,11,31 ugl para generar distintos txt
 						listaVisitas.add(visita);
 					}
 					listaAfiliados.add(afiliado);
