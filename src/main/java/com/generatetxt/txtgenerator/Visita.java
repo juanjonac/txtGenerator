@@ -9,6 +9,7 @@ public class Visita {
    public Integer codigoTipoServicio;
    public String uglEmpresaPrestadora;
    public String nroDeOp;
+   public boolean opVencida;
   
 
    public Visita(){}

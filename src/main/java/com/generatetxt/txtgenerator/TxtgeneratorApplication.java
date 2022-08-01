@@ -19,7 +19,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.fasterxml.jackson.databind.ser.std.ClassSerializer;
 
 //import com.sun.mail.util.LineInputStream;
 
@@ -51,11 +55,15 @@ public class TxtgeneratorApplication {
 	public static String REL_PRACTICASREALIZADASXAMBULATORIO = "REL_PRACTICASREALIZADASXAMBULATORIO";
 	public static String REL_PRACTICASSOLICITADASXAMBULATORIO = "REL_PRACTICASSOLICITADASXAMBULATORIO";
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
+	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 	public static Integer diasDelMes=30;
 	public static String primerDiaMes="01/06/2022";
-	public static String selectedUgl="31";//06,10,11,31
-
+	public static String ultimoDiaMes="30/06/2022";
+	public static String selectedUgl="10";//06,10,11,31
 	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
+	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
+
+	
 
 	
 
@@ -171,16 +179,16 @@ public class TxtgeneratorApplication {
 		return toReturn;
 	}
 
-	public static Frecuencia getFrecuencia(String nroAfiliado,String tipoServicio,List<Frecuencia> listFrecuencias){
+	public static Frecuencia getFrecuencia(String nroAfiliado,String tipoServicio,List<Frecuencia> listFrecuenciasParam){
 		Frecuencia frecuenciaToReturn = null;
-		for (Frecuencia frecuencia : listFrecuencias) {
-			if(frecuencia.tipoServicio.equals(tipoServicio) && frecuencia.nroAfiliado.equals(nroAfiliado)){//aca se hace el match entre el excel de visitas con el excel de frecuencias donde esta el nro de op 
+		for (int i=0;i<listFrecuenciasParam.size();i++) {
+			Frecuencia frecuencia1=listFrecuenciasParam.get(i);
+			if(frecuencia1.tipoServicio.equals(tipoServicio) && frecuencia1.nroAfiliado.equals(nroAfiliado)){//aca se hace el match entre el excel de visitas con el excel de frecuencias donde esta el nro de op 
 				//System.out.println("coincide la visita con la frecuencia");
-				frecuenciaToReturn=frecuencia;
+				frecuenciaToReturn=frecuencia1;
 				break;
 			}
 		}
-		
 		return frecuenciaToReturn;
 	}
 
@@ -237,7 +245,7 @@ public class TxtgeneratorApplication {
 		boolean tieneVisitasElPrimerDiaDelMes=false;
 		for (Visita visita : listaVisitasParam) {
 			String fechaVisitaRecortada=visita.fechaComienzo.split(" ")[0];
-			if (fechaVisitaRecortada.equals("01/06/2022")) {//si tiene visitas el 1 del mes poner en true el flag para no agregar nada
+			if (fechaVisitaRecortada.equals(primerDiaMes)) {//si tiene visitas el 1 del mes poner en true el flag para no agregar nada
 				tieneVisitasElPrimerDiaDelMes=true;
 			}
 			//System.out.println("fecha de visita cortada: "+ fechaVisitaRecortada);
@@ -269,9 +277,58 @@ public class TxtgeneratorApplication {
 		return visitasToReturn;
 	}
 
-	public static String buildAmbulatorio(List<Visita> listaVisitas,List<Frecuencia> listafrecuencias) {
+	public static Date StringToDate(String fechaString){
+		Date date1= new Date();
+		try {
+			//convertimos la fecha a date para hacer comparaciones
+			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			date1=new SimpleDateFormat("dd/MM/yyyy").parse(fechaString);
+			return date1;
+		} catch (Exception e) {
+			//TODO: handle exception
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+			return date1;
+		}
+	}
+
+	public static int calcularFrecuenciaEstaticos(Frecuencia frecuencia,String primerDiaMesParam,String fechaVisita){
+		int daysToReturn=30;
+		if (frecuencia==null || frecuencia.fechaInicio==null || frecuencia.fechaInicio.equals("") || primerDiaMesParam==null || primerDiaMesParam.equals("")) {
+			daysToReturn=30;//por default le ponemos 30 si es que no se encontro fecha de inicio o frecuencia
+		}else{
+			Date fechaInicioOP=StringToDate(frecuencia.fechaInicio);
+			Date primerdiaDelMes=StringToDate(primerDiaMesParam);
+			if (fechaInicioOP.after(primerdiaDelMes) || fechaInicioOP== primerdiaDelMes) {//si la op se inicio despues del primer dia del mes
+				//en este caso hay que restar el ultimo dia del mes con la fecha de inicio
+				Date ultimoDiaMesDate=StringToDate(ultimoDiaMes);
+				long days = Math.round((ultimoDiaMesDate.getTime() - fechaInicioOP.getTime()) / (double) 86400000)+1;//se convierte la diferencia en dias //se le suma un dia porque tambien se cuenta el mismo dia de inicio
+					System.out.println("la op se inicio despues del primer dia del mes o la fecha es igual al primer dia del mes: ultimo dia del mes: " + ultimoDiaMes+" fecha de inicio : "+ fechaInicioOP + " dias que se deben poner " + days);
+					daysToReturn= (int) days;
+			}else{
+				
+				if (frecuencia.fechaVencimiento ==null || frecuencia.fechaVencimiento.equals("")) {
+					daysToReturn= diasDelMes;
+				}else{
+					Date fechaVencimiento =StringToDate(frecuencia.fechaVencimiento);
+					long days = Math.round((fechaVencimiento.getTime() - primerdiaDelMes.getTime()) / (double) 86400000);//se convierte la diferencia en dias
+					if (days+1 >= diasDelMes) {
+						days=diasDelMes;
+					}else{
+						days=days+1;//se le agrea un dia porque se cuenta tambien ese dia de inicio
+					}
+					daysToReturn= (int) days;
+					System.out.println("la visita se realizo antes del primer dia del mes fecha de vencimiento: " + frecuencia.fechaVencimiento +" primer dia del mes: "+ primerDiaMes + " diferencia de dias : "+ days);
+				}
+			}
+		}
+		return daysToReturn;
+	}
+
+	public static String buildAmbulatorio(List<Visita> listaVisitas,List<Frecuencia> listafrecuenciasParamInAmbulatorio) {
 		System.out.println("Building ambulatorio");
 		String toReturn="";
+		Set<String> idsFrecuencias=new HashSet<>();
 		Map<String,List<Visita>> mapAfiliadosVisitas=new HashMap<String,List<Visita>>();
 		List<Insumo> listaInsumosEstaticos=processInsumosEstaticos();
 		for (Visita visita1 : listaVisitas) {
@@ -294,12 +351,29 @@ public class TxtgeneratorApplication {
 			//visita.nroAfiliado y visita.tipoServicio
 			
 			String fechaVisitaSinHora=visita.fechaComienzo.split(" ")[0];
+			//convierto la fecha de string a date para obtener el nro de semana que es 
+			if (fechaVisitaSinHora!=null) {
+				try {
+					Date date1=new SimpleDateFormat("dd/MM/yyyy").parse(fechaVisitaSinHora);
+					Calendar calendario = Calendar.getInstance();
+					calendario.setTime(date1);
+					//calendario.setFirstDayOfWeek(Calendar.SATURDAY);
+					//System.out.println("fecha :" + fechaVisitaSinHora + " corresponde al nro de  semana : "+ calendario.get(Calendar.WEEK_OF_MONTH) + " el dia es : " +calendario.get(Calendar.DAY_OF_WEEK));
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+					e.printStackTrace();
+				}
+				
+			}
+			//convierto la fecha de string a date para obtener el nro de semana que es  
 			String nroAfiliacionRecortado=visita.nroAfiliado.substring(0,visita.nroAfiliado.length()-2);//le sacamos los ultimos 2 digitos
 			nroAfiliacionRecortado=procesarNroAfiliacion(nroAfiliacionRecortado);//tambien se le agrega los 0 adelante que sean necesarios para completar 12 caracteres
 			String ultimosNrosRecortados=visita.nroAfiliado.substring(visita.nroAfiliado.length()-2,visita.nroAfiliado.length());
-			Frecuencia frecuencia=getFrecuencia(visita.nroAfiliado, visita.tipoServicio, listafrecuencias);
+			//el problema aca es que coincide el nro de afiliado con el tipo de servicio entonces en vez de tomar otra op toma la misma porque le coincide ejemplo op 9920935539 /****************************** */
+			Frecuencia frecuencia=getFrecuencia(visita.nroAfiliado, visita.tipoServicio, listafrecuenciasParamInAmbulatorio);
+			
 			if (isPrimerDia && visita.tipoServicio.equals("primer dia")) {//aca vuelvo a obtener la frecuencia estatica si es el primer dia y no tiene visitas
-				frecuencia=getFrecuenciaByNroAfiliado(visita.nroAfiliado,listafrecuencias);
+				frecuencia=getFrecuenciaByNroAfiliado(visita.nroAfiliado,listafrecuenciasParamInAmbulatorio);
 				if (frecuencia !=null) {
 					//System.out.println("buscar esta frecuencia para control txt: " + frecuencia.nroAfiliado);
 				}
@@ -311,19 +385,20 @@ public class TxtgeneratorApplication {
 				toReturn+=";;;0;1;I64;1\n";
 				toReturn+=REL_PRACTICASREALIZADASXAMBULATORIO+"\n";
 				String insumosEstaticosParaPracticasSolicitadas="";
-				if("01/06/2022".equals(fechaVisitaSinHora)){//primer dia del mes aca van estaticos los insumos y otro servicio
-					toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
+				if(primerDiaMes.equals(fechaVisitaSinHora)){//primer dia del mes aca van estaticos los insumos y otro servicio
+					Integer diasCalculadosParaEstaticos=calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora);
+					toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
 					for (Insumo insumo : getInsumosEstaticosByNroBeneficiarioAndNroOp(visita.nroAfiliado, frecuencia.nroOp, listaInsumosEstaticos)) {//recorro todos los insumos estaticos para ese benef y nro de op
-						toReturn+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
-						insumosEstaticosParaPracticasSolicitadas+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";0;1"+"\n";
+						toReturn+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
+						insumosEstaticosParaPracticasSolicitadas+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";0;1"+"\n";
 					}
 				}
 				//aca arranca la creacion dinamica de REL_PRACTICASREALIZADASXAMBULATORIO
 			//tengo que traerme una lista de visitas de la misma fecha y del mismo afiliado y eso ponerlo en un ciclo para ir buscando si existe en la tabla de frecuencias para esa op
 			Map<String,Integer> mapTipoServicioCantidad=new HashMap<String,Integer>();//este map es para contar cuantos servicios de cada tipo recibio un afiliado en una fecha determinada
 			String practicasSolicitadas="";
-			if("01/06/2022".equals(fechaVisitaSinHora)){//solo va el primer dia del mes
-			practicasSolicitadas+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+"30"+";0;1"+"\n";
+			if(primerDiaMes.equals(fechaVisitaSinHora)){//solo va el primer dia del mes
+			practicasSolicitadas+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora)+";0;1"+"\n";
 			if (insumosEstaticosParaPracticasSolicitadas!="") {
 				practicasSolicitadas+=insumosEstaticosParaPracticasSolicitadas;
 			}
@@ -342,7 +417,7 @@ public class TxtgeneratorApplication {
 			//bloque para agrupar por tipo de servicio y saber ya cuantos hay de cada uno por dia
 			Set<String> idsFrecuencia=new HashSet<>();
 			for (Visita visitaFiltrada : getVisitasByFechaYAfiliado( fechaVisitaSinHora,visita.nroAfiliado, listaVisitas)) {
-				Frecuencia frecuencia2=getFrecuenciaByNroOp(listafrecuencias, frecuencia.nroOp, visitaFiltrada.tipoServicio);
+				Frecuencia frecuencia2=getFrecuenciaByNroOp(listafrecuenciasParamInAmbulatorio, frecuencia.nroOp, visitaFiltrada.tipoServicio);
 				if (frecuencia2 !=null && mapTipoServicioCantidad !=null && mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) !=null ) {//si esto pasa significa que esa visita existe en la lista de frecuencias entonces hay que ponerla en la lista pero cuidando las ocurrencias que no sobre pase el limite
 					if (mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) <= calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia)) ) {//si la cantidad es menor o igual va la cantidad
 						toReturn+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";2;"+frecuencia2.nroOp +"\n";
@@ -352,13 +427,8 @@ public class TxtgeneratorApplication {
 						toReturn+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia))+";2;"+frecuencia2.nroOp +"\n";
 					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia))+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
 					}
-					if (fechaVisitaSinHora.equals("01/06/2022") &&frecuencia2.codTipoServicio.equals("227012") && frecuencia2.nroOp.equals("9920794850")) {
+					if (fechaVisitaSinHora.equals(primerDiaMes) &&frecuencia2.codTipoServicio.equals("227012") && frecuencia2.nroOp.equals("9920794850")) {
 						System.out.println("cantidades "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
-					}
-					if (fechaVisitaSinHora.equals("01/06/2022") && frecuencia2.nroOp.equals("9920794850")) {
-						//&& frecuencia2.codTipoServicio.equals("227011") && frecuencia2.nroOp.equals("9920794850")
-						System.out.println(visitaFiltrada.toString()); 
-						System.out.println("cantidades  227011"+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
 					}
 					//listafrecuencias.remove(frecuencia2);//indicar que esa frecuencia ya la tome , ahora tomar otra
 					mapTipoServicioCantidad.remove(visitaFiltrada.tipoServicio);//de aca saco el servicio para ya no usarlo para ese dia , de esa forma va solo uno con el conteo gral
@@ -376,10 +446,9 @@ public class TxtgeneratorApplication {
 			//REL_PRACTICASSOLICITADASXAMBULATORIO
 		
 			toReturn+=FIN_AMBULATORIO+"\n";
-			}	
+			}
 	}
 	}
-
 		return toReturn;
 	}
 
@@ -443,7 +512,7 @@ public class TxtgeneratorApplication {
 			if (afiliado.getNroAfiliacion() != null && afiliado.getNombreAfiliado() != null ) {
 				String fechaAfiliacion= afiliado.getFechaAfiliacion();
 				if (fechaAfiliacion==null || fechaAfiliacion=="" || fechaAfiliacion=="null") {
-					fechaAfiliacion="01/06/2022";
+					fechaAfiliacion=primerDiaMes;
 				}
 				
 				String nroAfiliadoParaProcesar=afiliado.getNroAfiliacion().substring(0, afiliado.getNroAfiliacion().length() - 2);
@@ -612,6 +681,10 @@ public static void processFrecuencia(Frecuencia frecuencia,String  value,Integer
 		frecuencia.codigoEstatico=value;
 	}else if(columnIndex==7){
 		frecuencia.idFrecuencia=value;//esta es una columna que agregue para tener in id en la frecuencia y no tomarla mas , porque hay mas de 1 frecuencia por nro de op y beneficiario
+	}else if(columnIndex==8){
+		frecuencia.fechaInicio=value;
+	}else if(columnIndex==9){
+		frecuencia.fechaVencimiento=value;
 	}
 }
 
@@ -626,6 +699,9 @@ public static List<Frecuencia> processFrecuenciaAndOp(){
 	columnsToTake.add(4);//frecuencia
 	columnsToTake.add(5);//ocurrencia
 	columnsToTake.add(6);//codigo estatico
+	columnsToTake.add(7);//codigo estatico
+	columnsToTake.add(8);//fecha inicio
+	columnsToTake.add(9);//fecha vencimiento
 	List<Frecuencia> listaFrecuencias=new ArrayList<Frecuencia>();
 	Integer rowCounter=0;
 	for (Row row : sheet) {// rows
@@ -634,11 +710,28 @@ public static List<Frecuencia> processFrecuenciaAndOp(){
 			if (columnsToTake.contains(cell.getColumnIndex()) ) {
 			switch (cell.getCellType()) {
 				case STRING:
-					processFrecuencia(frecuencia,cell.getStringCellValue(),cell.getColumnIndex());
+				String formatedDataString=cell.getStringCellValue();
+				if ((cell.getColumnIndex()==8 || cell.getColumnIndex()==9 ) && rowCounter!=0) {//si es fecha de inicio o vencimiento
+					try {
+						DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+						Date date1=new SimpleDateFormat("dd/MM/yyyy").parse(formatedDataString);    
+						formatedDataString = dateFormat.format(date1); 
+					} catch (Exception e) {
+						System.out.println(e.getMessage());
+						e.printStackTrace();
+						System.out.println("row : "+ rowCounter);
+					}
+				}
+					processFrecuencia(frecuencia,formatedDataString,cell.getColumnIndex());
 					break;
 				case NUMERIC:
 					DataFormatter formatter = new DataFormatter(); // creating formatter using the default locale
 					String formatedData = formatter.formatCellValue(cell); // Returns the formatted value of a cell	// as a String regardless of the cell// type.
+					if (cell.getColumnIndex()==8 || cell.getColumnIndex()==9) {//si es fecha de inicio o vencimiento
+						DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");  
+						Date date=cell.getDateCellValue();
+						formatedData = dateFormat.format(date); 
+					}
 					processFrecuencia(frecuencia,formatedData,cell.getColumnIndex());
 					break;
 				case BOOLEAN:
@@ -657,7 +750,7 @@ public static List<Frecuencia> processFrecuenciaAndOp(){
 		}
 		
 		}
-		if(rowCounter!=0 && rowCounter!=1){
+		if(rowCounter!=0 ){
 			listaFrecuencias.add(frecuencia);
 		}
 		rowCounter++;
@@ -1013,6 +1106,37 @@ public static  Map<String,String>  readCorrectUgl(String filename){
 	return toReturn;
 }
 
+public static List<Visita> cleanVisitasByFechaVencimientoOp(List<Visita> visitas , List<Frecuencia> frecuencias){
+	System.out.println("cleanVisitasByFechaVencimientoOp*************************************************************");
+	List<Visita> toReturn = new ArrayList<>();
+	for (Visita visita : visitas) {
+		Frecuencia frecuencia=getFrecuencia(visita.nroAfiliado, visita.tipoServicio, frecuencias);
+		if (frecuencia!=null) {//si encuentro la frecuencia verificar la fecha de vencimiento de la op , si esta vencida no va en la lista
+			if (frecuencia.fechaVencimiento==null || frecuencia.fechaVencimiento.equals("")) {
+				System.out.println("fecha vencimiento null poniendo ultimo dia mes");
+				frecuencia.fechaVencimiento=ultimoDiaMes;//si no trajo valor le seteo por default el primer dia del mes
+			}
+			if (visita.fechaComienzo !=null) {
+				try {
+					String FechaSinHora=visita.fechaComienzo.split(" ")[0];
+					Date fechaVisita=new SimpleDateFormat("dd/MM/yyyy").parse(FechaSinHora);
+					Date fechaVencimientoOp=  new SimpleDateFormat("dd/MM/yyyy").parse(frecuencia.fechaVencimiento);
+					if(!fechaVisita.after(fechaVencimientoOp)){//si la  fecha de visita no es mayor que la fecha de vencimiento significa que no vencio
+						//System.out.println("visita no vencida  :" +visita.fechaComienzo + " fecha de vencimiento: "+ frecuencia.fechaVencimiento );
+						toReturn.add(visita);//se agrega la visita porque no esta vencida
+					}
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+					e.printStackTrace();;
+				}
+			}
+			//System.out.println("fecha de vencimiento op: "+ frecuencia.fechaVencimiento + " fecha de visita : "+ visita.fechaComienzo + " nro de op : "  + frecuencia.nroOp + " tipo de servicio: "+ frecuencia.nroAfiliado);
+		}
+	}
+	
+	return toReturn;
+}
+
 	public static void processXlsx(String fileName) {
 		try {
 			System.out.println("processXlsx****************************************************************");
@@ -1095,10 +1219,10 @@ public static  Map<String,String>  readCorrectUgl(String filename){
 							visita.uglEmpresaPrestadora=uglCorrecta;//si la ugl es distinta se impone la de la planilla de ugl
 						}
 					}else{//si no existe en el map quiere decir que no esta en la planilla y que no esta en la bd con lo cual se descarta
-						System.out.println("no existe en la tabla de ugls : "+ visita.nroAfiliado);
+						//System.out.println("no existe en la tabla de ugls : "+ visita.nroAfiliado);
 						visita.uglEmpresaPrestadora="00";//agregando esto se descarta y no se carga al bloque de ambulatorio
 					}
-					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15043511480101")*/){//06,10,11,31 ugl para generar distintos txt
+					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("40507307050200")*/){//06,10,11,31 ugl para generar distintos txt
 						listaVisitas.add(visita);
 					}
 					listaAfiliados.add(afiliado);
@@ -1125,6 +1249,9 @@ public static  Map<String,String>  readCorrectUgl(String filename){
 				
 				List<Frecuencia> listaFrecuencias=processFrecuenciaAndOp();
 				if (listaFrecuencias !=null && !listaFrecuencias.isEmpty()) {
+					//aca tengo que hacer un clean de visitas vencidas para eso recorrer cada visita y cada op para asi obtener sus vencimientos
+					//listaVisitas=cleanVisitasByFechaVencimientoOp(listaVisitas,listaFrecuencias); comentado porque el clean no es correcto a veces podemos tener visitas de otra op y esa ya no la vamos a poner para agosto si ira el clean para julio se quita
+					//aca tengo que hacer un clean de visitas vencidas para eso recorrer cada visita y cada op para asi obtener sus vencimientos
 					txtContent+=PRESTACIONES+"\n";
 					txtContent+=buildAmbulatorio(listaVisitas,listaFrecuencias);	
 				}
