@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ser.std.ClassSerializer;
 public class TxtgeneratorApplication {
 
 	public static String basicPath = "C:\\Users\\juanj\\OneDrive\\Documentos\\txtgenerator\\txtgenerator\\txt generated files\\planillas que se necesitan para generar el txt\\";
-	public static String fileName = basicPath + "visitas JUNIO2022.xlsx";
+	public static String fileName = basicPath + "visitas JULIO2022.xlsx";
 	public static String CABECERA = "CABECERA";
 	public static String RED = "RED";
 	public static String PROFESIONAL = "PROFESIONAL";
@@ -56,11 +56,11 @@ public class TxtgeneratorApplication {
 	public static String REL_PRACTICASSOLICITADASXAMBULATORIO = "REL_PRACTICASSOLICITADASXAMBULATORIO";
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
-	public static Integer diasDelMes=30;
-	public static String primerDiaMes="01/06/2022";
-	public static String ultimoDiaMes="30/06/2022";
-	public static String selectedUgl="10";//06,10,11,31
-	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
+	public static Integer diasDelMes=31;
+	public static String primerDiaMes="01/07/2022";
+	public static String ultimoDiaMes="31/07/2022";
+	public static String selectedUgl="06";//06,10,11,31
+	public static String mesAño="07-22";//se debe actualizar por cada mes a generar
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 
 	

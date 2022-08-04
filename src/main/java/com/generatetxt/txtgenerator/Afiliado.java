@@ -22,9 +22,10 @@ public class Afiliado {
 
    public String getFechaNacimiento() {
       String fechaNacimientoToReturn="";
-      if(fechaNacimiento==null || fechaNacimiento.equals("")){
-         fechaNacimientoToReturn="";
+      if(fechaNacimiento==null || fechaNacimiento.equals("") || fechaNacimiento.equals("00/00/0000")){
+         fechaNacimientoToReturn="2/1/1931";
       }else{
+
          fechaNacimientoToReturn=fechaNacimiento;
       }
       return fechaNacimientoToReturn;
