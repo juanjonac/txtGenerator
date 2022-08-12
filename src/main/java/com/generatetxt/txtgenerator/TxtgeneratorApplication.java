@@ -59,7 +59,7 @@ public class TxtgeneratorApplication {
 	public static Integer diasDelMes=31;
 	public static String primerDiaMes="01/07/2022";
 	public static String ultimoDiaMes="31/07/2022";
-	public static String selectedUgl="10";//06,10,11,31
+	public static String selectedUgl="06";//06,10,11,31
 	public static String mesAño="07-22";//se debe actualizar por cada mes a generar
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 
@@ -204,7 +204,7 @@ public class TxtgeneratorApplication {
 
 	public static Frecuencia getFrecuencia(String nroAfiliado,String tipoServicio,List<Frecuencia> listFrecuenciasParam,String fechaVisitaParam){
 		Frecuencia frecuenciaToReturn = null;
-		Set<String> estaticosAEvitar=buildCodigosEstaticosAEvitar();
+		Set<String> estaticosAEvitar=new HashSet<>();//buildCodigosEstaticosAEvitar(); //comentado y se deja vacio porque voy a controlar los codigos estaticos en otro nivel
 		//System.out.println("nroAfiliado: "+ nroAfiliado + " tipo servicio: "+ tipoServicio +" fecha visita: "+ fechaVisitaParam);
 		for (int i=0;i<listFrecuenciasParam.size();i++) {
 			Frecuencia frecuencia1=listFrecuenciasParam.get(i);
@@ -469,7 +469,10 @@ public class TxtgeneratorApplication {
 				String insumosEstaticosParaPracticasSolicitadas="";
 				if(primerDiaMes.equals(fechaVisitaSinHora)){//primer dia del mes aca van estaticos los insumos y otro servicio
 					Integer diasCalculadosParaEstaticos=calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora);
-					toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
+					Set<String> codigosEstaticosAEvitar=buildCodigosEstaticosAEvitar();
+					if (!codigosEstaticosAEvitar.contains(frecuencia.codigoEstatico)) {//evitamos los codigos estaticos que no son admitidos en el txt
+						toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
+					}
 					for (Insumo insumo : getInsumosEstaticosByNroBeneficiarioAndNroOp(visita.nroAfiliado, frecuencia.nroOp, listaInsumosEstaticos)) {//recorro todos los insumos estaticos para ese benef y nro de op
 						toReturn+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
 						insumosEstaticosParaPracticasSolicitadas+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";0;1"+"\n";
@@ -481,7 +484,10 @@ public class TxtgeneratorApplication {
 			
 			String practicasSolicitadas="";
 			if(primerDiaMes.equals(fechaVisitaSinHora)){//solo va el primer dia del mes
+				Set<String> codigosEstaticosAEvitar=buildCodigosEstaticosAEvitar();
+				if (!codigosEstaticosAEvitar.contains(frecuencia.codigoEstatico)) {//evitamos los codigos estaticos que no son admitidos en el txt
 			practicasSolicitadas+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora)+";0;1"+"\n";
+				}
 			if (insumosEstaticosParaPracticasSolicitadas!="") {
 				practicasSolicitadas+=insumosEstaticosParaPracticasSolicitadas;
 			}
@@ -555,7 +561,7 @@ public class TxtgeneratorApplication {
 
 	private static Frecuencia getFrecuenciaByNroAfiliado(String nroAfiliadoParam,List<Frecuencia> listafrecuencias,String fechaVisitaParam) {
 		Frecuencia frecuenciaToReturn=null;
-		Set<String> estaticosAEvitar=buildCodigosEstaticosAEvitar();
+		Set<String> estaticosAEvitar=new HashSet<>();//buildCodigosEstaticosAEvitar(); //comentado y se deja vacio porque voy a controlar los codigos estaticos en otro nivel
 		for (Frecuencia frecuencia : listafrecuencias) {
 			if (frecuencia.nroAfiliado.equals(nroAfiliadoParam)) {//se busca la frecuencia para obtener el codigo estatico
 				if (fechaVisitaParam.equals(primerDiaMes)) {//si es el primer dia debo evitar los estaticos que no son compatibles en el txt
@@ -1336,7 +1342,7 @@ public static List<Visita> cleanVisitasByFechaVencimientoOp(List<Visita> visitas
 						//System.out.println("no existe en la tabla de ugls : "+ visita.nroAfiliado);
 						visita.uglEmpresaPrestadora="00";//agregando esto se descarta y no se carga al bloque de ambulatorio
 					}
-					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15076855530300")*/){//06,10,11,31 ugl para generar distintos txt
+					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15549604100300")*/){//06,10,11,31 ugl para generar distintos txt
 						listaVisitas.add(visita);
 					}
 					listaAfiliados.add(afiliado);
