@@ -59,7 +59,7 @@ public class TxtgeneratorApplication {
 	public static Integer diasDelMes=31;
 	public static String primerDiaMes="01/07/2022";
 	public static String ultimoDiaMes="31/07/2022";
-	public static String selectedUgl="06";//06,10,11,31
+	public static String selectedUgl="31";//06,10,11,31
 	public static String mesAño="07-22";//se debe actualizar por cada mes a generar
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 
@@ -226,7 +226,7 @@ public class TxtgeneratorApplication {
 					
 				break;
 				}else{
-					System.out.println("fecha de visita paso la fecha de vencimiento de la op : "+ frecuencia1.fechaVencimiento +" fecha visita: "+ fechaVisitaParam +" op nro: "+ frecuencia1.nroOp);
+					//System.out.println("fecha de visita paso la fecha de vencimiento de la op : "+ frecuencia1.fechaVencimiento +" fecha visita: "+ fechaVisitaParam +" op nro: "+ frecuencia1.nroOp);
 				}
 				
 			}
@@ -387,7 +387,7 @@ public class TxtgeneratorApplication {
 				//en este caso hay que restar el ultimo dia del mes con la fecha de inicio
 				Date ultimoDiaMesDate=StringToDate(ultimoDiaMes);
 				long days = Math.round((ultimoDiaMesDate.getTime() - fechaInicioOP.getTime()) / (double) 86400000)+1;//se convierte la diferencia en dias //se le suma un dia porque tambien se cuenta el mismo dia de inicio
-					System.out.println("la op se inicio despues del primer dia del mes o la fecha es igual al primer dia del mes: ultimo dia del mes: " + ultimoDiaMes+" fecha de inicio : "+ fechaInicioOP + " dias que se deben poner " + days);
+					//System.out.println("la op se inicio despues del primer dia del mes o la fecha es igual al primer dia del mes: ultimo dia del mes: " + ultimoDiaMes+" fecha de inicio : "+ fechaInicioOP + " dias que se deben poner " + days);
 					daysToReturn= (int) days;
 			}else{
 				
@@ -402,7 +402,7 @@ public class TxtgeneratorApplication {
 						days=days+1;//se le agrea un dia porque se cuenta tambien ese dia de inicio
 					}
 					daysToReturn= (int) days;
-					System.out.println("la visita se realizo antes del primer dia del mes fecha de vencimiento: " + frecuencia.fechaVencimiento +" primer dia del mes: "+ primerDiaMes + " diferencia de dias : "+ days);
+					//System.out.println("la visita se realizo antes del primer dia del mes fecha de vencimiento: " + frecuencia.fechaVencimiento +" primer dia del mes: "+ primerDiaMes + " diferencia de dias : "+ days);
 				}
 			}
 		}
@@ -425,6 +425,7 @@ public class TxtgeneratorApplication {
 		for (String s : mapAfiliadosVisitas.keySet()) {//recorro primero por afiliado el orden es : se recorre primero un afiliado hasta terminar todas las fechas y asi continuar con el siguiente
 			boolean isPrimerDia=true;//para manejar los estaticos aun que no haya visitas
 			for (Visita visita : groupVisitasByFecha(mapAfiliadosVisitas.get(s),listafrecuenciasParamInAmbulatorio)) {//por cada afiliado obtengo la lista de visitas de fechas distintas
+				String bloqueAmbulatorio="";
 			if (isPrimerDia && visita.tipoServicio.equals("primer dia")) {
 				//System.out.println("es el primer dia de este beneficiario pero fake");
 				visita.nroAfiliado=s;//le cargo el nro de afiliado
@@ -446,7 +447,10 @@ public class TxtgeneratorApplication {
 				}
 				
 			}
-			//convierto la fecha de string a date para obtener el nro de semana que es  
+			//convierto la fecha de string a date para obtener el nro de semana que es 
+			boolean codigoEstaticoAEvitar=false; 
+			boolean tieneVisitas=false; 
+			boolean tieneInsumosEstaticos=false; 
 			String nroAfiliacionRecortado=visita.nroAfiliado.substring(0,visita.nroAfiliado.length()-2);//le sacamos los ultimos 2 digitos
 			nroAfiliacionRecortado=procesarNroAfiliacion(nroAfiliacionRecortado);//tambien se le agrega los 0 adelante que sean necesarios para completar 12 caracteres
 			String ultimosNrosRecortados=visita.nroAfiliado.substring(visita.nroAfiliado.length()-2,visita.nroAfiliado.length());
@@ -462,20 +466,23 @@ public class TxtgeneratorApplication {
 			}
 			if (frecuencia !=null) {
 				idsFrecuenciasParam.add(frecuencia.idFrecuencia);//se agrega al set para no tomar mas el las siguientes pasadas del build ambulatorio
-				toReturn += AMBULATORIO + "\n";
-				toReturn+="30-70896790-0;;"+getCodigoAmbulatorioSegunUgl(selectedUgl)+";0;0;0;1;0;"+fechaVisitaSinHora+";;;2;"+frecuencia.nroOp+";;"+nroAfiliacionRecortado+";"+ultimosNrosRecortados+"\n";
-				toReturn+=";;;0;1;I64;1\n";
-				toReturn+=REL_PRACTICASREALIZADASXAMBULATORIO+"\n";
+				bloqueAmbulatorio += AMBULATORIO + "\n";
+				bloqueAmbulatorio+="30-70896790-0;;"+getCodigoAmbulatorioSegunUgl(selectedUgl)+";0;0;0;1;0;"+fechaVisitaSinHora+";;;2;"+frecuencia.nroOp+";;"+nroAfiliacionRecortado+";"+ultimosNrosRecortados+"\n";
+				bloqueAmbulatorio+=";;;0;1;I64;1\n";
+				bloqueAmbulatorio+=REL_PRACTICASREALIZADASXAMBULATORIO+"\n";
 				String insumosEstaticosParaPracticasSolicitadas="";
 				if(primerDiaMes.equals(fechaVisitaSinHora)){//primer dia del mes aca van estaticos los insumos y otro servicio
 					Integer diasCalculadosParaEstaticos=calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora);
 					Set<String> codigosEstaticosAEvitar=buildCodigosEstaticosAEvitar();
 					if (!codigosEstaticosAEvitar.contains(frecuencia.codigoEstatico)) {//evitamos los codigos estaticos que no son admitidos en el txt
-						toReturn+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
+						bloqueAmbulatorio+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un codigo estatico
+					}else{
+						codigoEstaticoAEvitar=true;
 					}
 					for (Insumo insumo : getInsumosEstaticosByNroBeneficiarioAndNroOp(visita.nroAfiliado, frecuencia.nroOp, listaInsumosEstaticos)) {//recorro todos los insumos estaticos para ese benef y nro de op
-						toReturn+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
+						bloqueAmbulatorio+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";2;"+frecuencia.nroOp+"\n";//linea que se repite siempre tiene un insumo estatico
 						insumosEstaticosParaPracticasSolicitadas+=";;;0;1;"+insumo.codigo+";"+fechaVisitaSinHora+" 00:00"+";"+diasCalculadosParaEstaticos+";0;1"+"\n";
+						tieneInsumosEstaticos=true;//se pone en false si es que tiene un insumo
 					}
 				}
 				//aca arranca la creacion dinamica de REL_PRACTICASREALIZADASXAMBULATORIO
@@ -487,6 +494,8 @@ public class TxtgeneratorApplication {
 				Set<String> codigosEstaticosAEvitar=buildCodigosEstaticosAEvitar();
 				if (!codigosEstaticosAEvitar.contains(frecuencia.codigoEstatico)) {//evitamos los codigos estaticos que no son admitidos en el txt
 			practicasSolicitadas+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora)+";0;1"+"\n";
+				}else{
+					codigoEstaticoAEvitar=true;
 				}
 			if (insumosEstaticosParaPracticasSolicitadas!="") {
 				practicasSolicitadas+=insumosEstaticosParaPracticasSolicitadas;
@@ -523,14 +532,16 @@ public class TxtgeneratorApplication {
 					if (!codigosUtilizados.contains(frecuencia2.codTipoServicio)) {//aca evito que se repita el codigo en el mismo bloque
 				if (frecuencia2 !=null && mapTipoServicioCantidad !=null && mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) !=null ) {//si esto pasa significa que esa visita existe en la lista de frecuencias entonces hay que ponerla en la lista pero cuidando las ocurrencias que no sobre pase el limite
 					if (mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) <= calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio) ) {//si la cantidad es menor o igual va la cantidad
-						toReturn+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";2;"+frecuencia2.nroOp +"\n";
+						bloqueAmbulatorio+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";2;"+frecuencia2.nroOp +"\n";
 					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
 					codigosUtilizados.add(frecuencia2.codTipoServicio);
+					tieneVisitas=true;
 					}else{
 						//System.out.println("sobre paso la cantidad maxima: "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
-						toReturn+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio)+";2;"+frecuencia2.nroOp +"\n";
+						bloqueAmbulatorio+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio)+";2;"+frecuencia2.nroOp +"\n";
 					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio)+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
 					codigosUtilizados.add(frecuencia2.codTipoServicio);
+					tieneVisitas=true;
 					}
 					if (fechaVisitaSinHora.equals(primerDiaMes) &&frecuencia2.codTipoServicio.equals("227012") && frecuencia2.nroOp.equals("9920794850")) {
 						System.out.println("cantidades "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ,mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio));
@@ -546,13 +557,19 @@ public class TxtgeneratorApplication {
 			} //comentado del for de frencuencias 2
 			}
 			//REL_PRACTICASREALIZADASXAMBULATORIO
-
+			
 			//REL_PRACTICASSOLICITADASXAMBULATORIO
-			toReturn+=REL_PRACTICASSOLICITADASXAMBULATORIO+"\n";
-			toReturn+=practicasSolicitadas;
+			bloqueAmbulatorio+=REL_PRACTICASSOLICITADASXAMBULATORIO+"\n";
+			bloqueAmbulatorio+=practicasSolicitadas;
 			//REL_PRACTICASSOLICITADASXAMBULATORIO
 		
-			toReturn+=FIN_AMBULATORIO+"\n";
+			bloqueAmbulatorio+=FIN_AMBULATORIO+"\n";
+			if (codigoEstaticoAEvitar && !tieneVisitas && !tieneInsumosEstaticos) {//si esto se cumple entonces hay que evitar este bloque
+				System.out.println("si esto se cumple hay que evitar este bloque porque no se puede poner el estatico y tampoco tiene visitas");
+				System.out.println(bloqueAmbulatorio);
+			}else{
+				toReturn+=bloqueAmbulatorio;//si es que no cumple con las condiciones para ignorar el bloque lo cargamos
+			}
 			}
 	}
 	}
