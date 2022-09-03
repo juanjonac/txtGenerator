@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ser.std.ClassSerializer;
 public class TxtgeneratorApplication {
 
 	public static String basicPath = "C:\\Users\\juanj\\OneDrive\\Documentos\\txtgenerator\\txtgenerator\\txt generated files\\planillas que se necesitan para generar el txt\\";
-	public static String fileName = basicPath + "visitas JULIO2022.xlsx";
+	public static String fileName = basicPath + "visitas JUNIO2022.xlsx";
 	public static String CABECERA = "CABECERA";
 	public static String RED = "RED";
 	public static String PROFESIONAL = "PROFESIONAL";
@@ -56,11 +56,11 @@ public class TxtgeneratorApplication {
 	public static String REL_PRACTICASSOLICITADASXAMBULATORIO = "REL_PRACTICASSOLICITADASXAMBULATORIO";
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
-	public static Integer diasDelMes=31;
-	public static String primerDiaMes="01/07/2022";
-	public static String ultimoDiaMes="31/07/2022";
+	public static Integer diasDelMes=30;
+	public static String primerDiaMes="01/06/2022";
+	public static String ultimoDiaMes="30/06/2022";
 	public static String selectedUgl="31";//06,10,11,31
-	public static String mesAño="07-22";//se debe actualizar por cada mes a generar
+	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 
 	
@@ -182,6 +182,8 @@ public class TxtgeneratorApplication {
 	public static Set<String> buildCodigosEstaticosAEvitar(){
 		Set<String> estaticosAEvitar=new HashSet<>();//aca se cargan los codigos estaticos que son invalidos en el txt
 		estaticosAEvitar.add("223001");
+		estaticosAEvitar.add("219003");
+		estaticosAEvitar.add("221003");
 		estaticosAEvitar.add("219006");
 		estaticosAEvitar.add("221001");
 		estaticosAEvitar.add("219002");
@@ -213,12 +215,16 @@ public class TxtgeneratorApplication {
 				Date fechaVisita=StringToDate(fechaVisitaParam);
 				//System.out.println("coincide la visita con la frecuencia");
 				Date frecuenciaFechaVencimiento=StringToDate(frecuencia1.fechaVencimiento);
+				Date frecuenciaInicio=StringToDate(frecuencia1.fechaInicio);
+				if (frecuenciaInicio.after(fechaVisita)) {//si la op inicio despues de la fecha de visita actual entonces hay que evitar la op
+					return null;
+				}
 				if (!fechaVisita.after(frecuenciaFechaVencimiento)  ) {
 					//System.out.println("coincide la visita con la frecuencia y la fecha es ok");
 					if (fechaVisitaParam.equals(primerDiaMes)  ) {//si es el primer dia del mes tengo que evitar poner el codigo estatico que no es compatible en el txt
-						if ( !estaticosAEvitar.contains(frecuencia1.codigoEstatico) ) {
+						/*if ( !estaticosAEvitar.contains(frecuencia1.codigoEstatico) ) {*/
 							frecuenciaToReturn=frecuencia1;
-						}
+						//}comentado este if porque no evito la op simplemente no pongo el estatico de esa frecuencia
 						
 					}else{//si no es el primer dia del mes retornar sin problema
 						frecuenciaToReturn=frecuencia1;
@@ -341,6 +347,7 @@ public class TxtgeneratorApplication {
 				//System.out.println("fecha repetida: "+ fechaVisitaRecortada);
 			}
 		}
+		/* comentado porque ya no van las visitas creadas en el primer dia ni los insumos , van directamente el primer dia que se hicieron  
 		if (!tieneVisitasElPrimerDiaDelMes) {//si no tiene visitas el primer dia del mes entonces agregar en la primera posicion
 			//System.out.println("no tiene primer visitas el primer dia");
 			List<Visita> visitasToReturnAux=new ArrayList<>();
@@ -358,6 +365,7 @@ public class TxtgeneratorApplication {
 				visitasToReturn=visitasToReturnAux;//se agrga la nueva lista con la visita fake en la primera posicion
 			}
 		}
+		*/
 		return visitasToReturn;
 	}
 
@@ -379,7 +387,7 @@ public class TxtgeneratorApplication {
 	public static int calcularFrecuenciaEstaticos(Frecuencia frecuencia,String primerDiaMesParam,String fechaVisita){
 		int daysToReturn=diasDelMes;
 		if (frecuencia==null || frecuencia.fechaInicio==null || frecuencia.fechaInicio.equals("") || primerDiaMesParam==null || primerDiaMesParam.equals("")) {
-			daysToReturn=30;//por default le ponemos 30 si es que no se encontro fecha de inicio o frecuencia
+			daysToReturn=diasDelMes;//por default le ponemos 30 si es que no se encontro fecha de inicio o frecuencia
 		}else{
 			Date fechaInicioOP=StringToDate(frecuencia.fechaInicio);
 			Date primerdiaDelMes=StringToDate(primerDiaMesParam);
@@ -426,11 +434,13 @@ public class TxtgeneratorApplication {
 			boolean isPrimerDia=true;//para manejar los estaticos aun que no haya visitas
 			for (Visita visita : groupVisitasByFecha(mapAfiliadosVisitas.get(s),listafrecuenciasParamInAmbulatorio)) {//por cada afiliado obtengo la lista de visitas de fechas distintas
 				String bloqueAmbulatorio="";
+				/* 
 			if (isPrimerDia && visita.tipoServicio.equals("primer dia")) {
 				//System.out.println("es el primer dia de este beneficiario pero fake");
 				visita.nroAfiliado=s;//le cargo el nro de afiliado
 				visita.fechaComienzo=primerDiaMes;
 			}
+			*/
 			//visita.nroAfiliado y visita.tipoServicio
 			String fechaVisitaSinHora=visita.fechaComienzo.split(" ")[0];
 			//convierto la fecha de string a date para obtener el nro de semana que es 
@@ -456,7 +466,7 @@ public class TxtgeneratorApplication {
 			String ultimosNrosRecortados=visita.nroAfiliado.substring(visita.nroAfiliado.length()-2,visita.nroAfiliado.length());
 			//el problema aca es que coincide el nro de afiliado con el tipo de servicio entonces en vez de tomar otra op toma la misma porque le coincide ejemplo op 9920935539 /****************************** */
 			Frecuencia frecuencia=getFrecuencia(visita.nroAfiliado, visita.tipoServicio, listafrecuenciasParamInAmbulatorio,fechaVisitaSinHora);
-			
+			/*comentado ya no van visitas el primer dia si no hay
 			if (isPrimerDia && visita.tipoServicio.equals("primer dia")) {//aca vuelvo a obtener la frecuencia estatica si es el primer dia y no tiene visitas
 				frecuencia=getFrecuenciaByNroAfiliado(visita.nroAfiliado,listafrecuenciasParamInAmbulatorio,fechaVisitaSinHora);
 				if (frecuencia !=null) {
@@ -464,6 +474,7 @@ public class TxtgeneratorApplication {
 				}
 				isPrimerDia=false;//se pone en falso una vez que se procesa
 			}
+			 */
 			if (frecuencia !=null) {
 				idsFrecuenciasParam.add(frecuencia.idFrecuencia);//se agrega al set para no tomar mas el las siguientes pasadas del build ambulatorio
 				bloqueAmbulatorio += AMBULATORIO + "\n";
@@ -471,7 +482,7 @@ public class TxtgeneratorApplication {
 				bloqueAmbulatorio+=";;;0;1;I64;1\n";
 				bloqueAmbulatorio+=REL_PRACTICASREALIZADASXAMBULATORIO+"\n";
 				String insumosEstaticosParaPracticasSolicitadas="";
-				if(primerDiaMes.equals(fechaVisitaSinHora)){//primer dia del mes aca van estaticos los insumos y otro servicio
+				if(isPrimerDia){//primer dia en que se registro visita para ese beneficiario aca van estaticos los insumos y otro servicio
 					Integer diasCalculadosParaEstaticos=calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora);
 					Set<String> codigosEstaticosAEvitar=buildCodigosEstaticosAEvitar();
 					if (!codigosEstaticosAEvitar.contains(frecuencia.codigoEstatico)) {//evitamos los codigos estaticos que no son admitidos en el txt
@@ -490,7 +501,7 @@ public class TxtgeneratorApplication {
 			Map<String,Integer> mapTipoServicioCantidad=new HashMap<String,Integer>();//este map es para contar cuantos servicios de cada tipo recibio un afiliado en una fecha determinada
 			
 			String practicasSolicitadas="";
-			if(primerDiaMes.equals(fechaVisitaSinHora)){//solo va el primer dia del mes
+			if(isPrimerDia){//solo va el primer dia donde hubo visitas
 				Set<String> codigosEstaticosAEvitar=buildCodigosEstaticosAEvitar();
 				if (!codigosEstaticosAEvitar.contains(frecuencia.codigoEstatico)) {//evitamos los codigos estaticos que no son admitidos en el txt
 			practicasSolicitadas+=";;;0;1;"+frecuencia.codigoEstatico+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaEstaticos(frecuencia,primerDiaMes,fechaVisitaSinHora)+";0;1"+"\n";
@@ -557,7 +568,7 @@ public class TxtgeneratorApplication {
 			} //comentado del for de frencuencias 2
 			}
 			//REL_PRACTICASREALIZADASXAMBULATORIO
-			
+			isPrimerDia=false;//una vez todo procesado ya no es el primer dia de visita
 			//REL_PRACTICASSOLICITADASXAMBULATORIO
 			bloqueAmbulatorio+=REL_PRACTICASSOLICITADASXAMBULATORIO+"\n";
 			bloqueAmbulatorio+=practicasSolicitadas;
@@ -1359,7 +1370,7 @@ public static List<Visita> cleanVisitasByFechaVencimientoOp(List<Visita> visitas
 						//System.out.println("no existe en la tabla de ugls : "+ visita.nroAfiliado);
 						visita.uglEmpresaPrestadora="00";//agregando esto se descarta y no se carga al bloque de ambulatorio
 					}
-					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15549604100300")*/){//06,10,11,31 ugl para generar distintos txt
+					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15582319441400")*/){//06,10,11,31 ugl para generar distintos txt
 						listaVisitas.add(visita);
 					}
 					listaAfiliados.add(afiliado);
