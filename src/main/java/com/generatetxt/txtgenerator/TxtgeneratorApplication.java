@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ser.std.ClassSerializer;
 public class TxtgeneratorApplication {
 
 	public static String basicPath = "C:\\Users\\juanj\\OneDrive\\Documentos\\txtgenerator\\txtgenerator\\txt generated files\\planillas que se necesitan para generar el txt\\";
-	public static String fileName = basicPath + "visitas JUNIO2022.xlsx";
+	public static String fileName = basicPath + "visitas AGOSTO2022.xlsx";
 	public static String CABECERA = "CABECERA";
 	public static String RED = "RED";
 	public static String PROFESIONAL = "PROFESIONAL";
@@ -56,11 +56,11 @@ public class TxtgeneratorApplication {
 	public static String REL_PRACTICASSOLICITADASXAMBULATORIO = "REL_PRACTICASSOLICITADASXAMBULATORIO";
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
-	public static Integer diasDelMes=30;
-	public static String primerDiaMes="01/06/2022";
-	public static String ultimoDiaMes="30/06/2022";
-	public static String selectedUgl="31";//06,10,11,31
-	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
+	public static Integer diasDelMes=31;
+	public static String primerDiaMes="01/08/2022";
+	public static String ultimoDiaMes="31/08/2022";
+	public static String selectedUgl="10";//06,10,11,31
+	public static String mesAño="08-22";//se debe actualizar por cada mes a generar
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 
 	
@@ -205,6 +205,7 @@ public class TxtgeneratorApplication {
 	}
 
 	public static Frecuencia getFrecuencia(String nroAfiliado,String tipoServicio,List<Frecuencia> listFrecuenciasParam,String fechaVisitaParam){
+		//System.out.println("get frecuencia***************************************************");
 		Frecuencia frecuenciaToReturn = null;
 		Set<String> estaticosAEvitar=new HashSet<>();//buildCodigosEstaticosAEvitar(); //comentado y se deja vacio porque voy a controlar los codigos estaticos en otro nivel
 		//System.out.println("nroAfiliado: "+ nroAfiliado + " tipo servicio: "+ tipoServicio +" fecha visita: "+ fechaVisitaParam);
@@ -213,20 +214,26 @@ public class TxtgeneratorApplication {
 			//System.out.println(frecuencia1.toString());
 			if(frecuencia1.tipoServicio.equals(tipoServicio) && frecuencia1.nroAfiliado.equals(nroAfiliado)){//aca se hace el match entre el excel de visitas con el excel de frecuencias donde esta el nro de op 
 				Date fechaVisita=StringToDate(fechaVisitaParam);
+				
 				//System.out.println("coincide la visita con la frecuencia");
 				Date frecuenciaFechaVencimiento=StringToDate(frecuencia1.fechaVencimiento);
 				Date frecuenciaInicio=StringToDate(frecuencia1.fechaInicio);
+				boolean skip=false;
 				if (frecuenciaInicio.after(fechaVisita)) {//si la op inicio despues de la fecha de visita actual entonces hay que evitar la op
-					return null;
+					skip=true;
 				}
+				if (!skip) {//evitar procesar ese registro
 				if (!fechaVisita.after(frecuenciaFechaVencimiento)  ) {
 					//System.out.println("coincide la visita con la frecuencia y la fecha es ok");
+					
 					if (fechaVisitaParam.equals(primerDiaMes)  ) {//si es el primer dia del mes tengo que evitar poner el codigo estatico que no es compatible en el txt
+						//System.out.println("se encontro frecuencia: " + frecuencia1.toString());
 						/*if ( !estaticosAEvitar.contains(frecuencia1.codigoEstatico) ) {*/
 							frecuenciaToReturn=frecuencia1;
 						//}comentado este if porque no evito la op simplemente no pongo el estatico de esa frecuencia
 						
 					}else{//si no es el primer dia del mes retornar sin problema
+						//System.out.println("se encontro frecuencia: " + frecuencia1.toString());
 						frecuenciaToReturn=frecuencia1;
 					}
 					
@@ -234,6 +241,7 @@ public class TxtgeneratorApplication {
 				}else{
 					//System.out.println("fecha de visita paso la fecha de vencimiento de la op : "+ frecuencia1.fechaVencimiento +" fecha visita: "+ fechaVisitaParam +" op nro: "+ frecuencia1.nroOp);
 				}
+			}
 				
 			}
 		}
@@ -250,7 +258,8 @@ public class TxtgeneratorApplication {
 				if (!idsFrecuencias.contains(frecuencia.idFrecuencia)) {
 					Date fechaVisita=StringToDate(fechaVisitaParam);
 				Date frecuenciaFechaVencimiento=StringToDate(frecuencia.fechaVencimiento);
-				if (!fechaVisita.after(frecuenciaFechaVencimiento)) {
+				Date frecuenciaFechaInicio=StringToDate(frecuencia.fechaInicio);
+				if (!fechaVisita.after(frecuenciaFechaVencimiento) && !frecuenciaFechaInicio.after(fechaVisita)) {//si la fecha de la visita no es mayor a la fecha de vencimiento y si la fecha de visita es mayor a la fecha de inicio
 					frecuenciasToReturn.add(frecuencia);
 				}
 			}
@@ -374,9 +383,11 @@ public class TxtgeneratorApplication {
 		try {
 			//convertimos la fecha a date para hacer comparaciones
 			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			
 			date1=new SimpleDateFormat("dd/MM/yyyy").parse(fechaString);
 			return date1;
 		} catch (Exception e) {
+			System.out.println("fecha : "+ fechaString);
 			//TODO: handle exception
 			e.printStackTrace();
 			System.out.println(e.getMessage());
@@ -1370,7 +1381,7 @@ public static List<Visita> cleanVisitasByFechaVencimientoOp(List<Visita> visitas
 						//System.out.println("no existe en la tabla de ugls : "+ visita.nroAfiliado);
 						visita.uglEmpresaPrestadora="00";//agregando esto se descarta y no se carga al bloque de ambulatorio
 					}
-					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15582319441400")*/){//06,10,11,31 ugl para generar distintos txt
+					if(visita.uglEmpresaPrestadora.equals(selectedUgl)  /*&& visita.nroAfiliado.equals("15022477800800")*/){//06,10,11,31 ugl para generar distintos txt
 						listaVisitas.add(visita);
 					}
 					listaAfiliados.add(afiliado);
