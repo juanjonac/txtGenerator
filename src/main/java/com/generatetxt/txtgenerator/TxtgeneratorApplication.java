@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +40,6 @@ import com.fasterxml.jackson.databind.ser.std.ClassSerializer;
 public class TxtgeneratorApplication {
 
 	public static String basicPath = "C:\\Users\\juanj\\OneDrive\\Documentos\\txtgenerator\\txtgenerator\\txt generated files\\planillas que se necesitan para generar el txt\\";
-	public static String fileName = basicPath + "visitas AGOSTO2022.xlsx";
 	public static String CABECERA = "CABECERA";
 	public static String RED = "RED";
 	public static String PROFESIONAL = "PROFESIONAL";
@@ -56,11 +56,12 @@ public class TxtgeneratorApplication {
 	public static String REL_PRACTICASSOLICITADASXAMBULATORIO = "REL_PRACTICASSOLICITADASXAMBULATORIO";
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
-	public static Integer diasDelMes=31;
-	public static String primerDiaMes="01/08/2022";
-	public static String ultimoDiaMes="31/08/2022";
-	public static String selectedUgl="10";//06,10,11,31
-	public static String mesAño="08-22";//se debe actualizar por cada mes a generar
+	public static Integer diasDelMes=30;
+	public static String primerDiaMes="01/06/2022";
+	public static String ultimoDiaMes="30/06/2022";
+	public static String fileName = basicPath + "visitas JUNIO2022.xlsx";
+	public static String selectedUgl="31";//06,10,11,31
+	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 
 	
@@ -306,10 +307,16 @@ public class TxtgeneratorApplication {
 		return listaVisitaToReturn;
 	}
 
-	public static Integer calcularFrecuenciaMaxima(String frecuencia,Integer ocurrencia,Map<String,Integer> mapCantidadCodigosTxt,String codigoTXT){
+	public static Integer calcularFrecuenciaMaxima(Frecuencia frecuenciaParam,String frecuencia,Integer ocurrencia,Map<String,Integer> mapCantidadCodigosTxt,String codigoTXT){
+		try {
 		Integer frecuenciaMaximaToReturn=0;
-		if (mapCantidadCodigosTxt.get(codigoTXT) !=null && mapCantidadCodigosTxt.get(codigoTXT)>1) {//si esta el codigo y si la cantidad es > 1 significa que hay 2 op con el mismo codigo por ende hay que retornar la maxima cantidad que se conto , se retorna la maxima cantidad en una sola op
-			frecuenciaMaximaToReturn=mapCantidadCodigosTxt.get(codigoTXT);
+		Map<String,Integer>codigosFrecuenciasMaximasCasosEspeciales=codigosConFrecuenciasMaximas();
+		if (codigosFrecuenciasMaximasCasosEspeciales.get(codigoTXT) !=null && codigoTXT.equals("223101") && codigosFrecuenciasMaximasCasosEspeciales.get(frecuenciaParam.codigoEstatico)!=null) {//si esta el codigo y si la cantidad es > 1 significa que hay 2 op con el mismo codigo por ende hay que retornar la maxima cantidad que se conto , se retorna la maxima cantidad en una sola op
+				frecuenciaMaximaToReturn=codigosFrecuenciasMaximasCasosEspeciales.get(frecuenciaParam.codigoEstatico);//codigos especiales para obtener frecuencia exacta
+				//System.out.println("return : " + frecuenciaMaximaToReturn +" codigo buscado: "+ codigoTXT+" estatico buscado: "+ frecuenciaParam.codigoEstatico+ " nro op : " +frecuenciaParam.nroOp);
+		}else if(codigosFrecuenciasMaximasCasosEspeciales.get(codigoTXT) !=null){
+			frecuenciaMaximaToReturn=codigosFrecuenciasMaximasCasosEspeciales.get(codigoTXT);
+			//System.out.println("return : " + frecuenciaMaximaToReturn);
 		}else{//si no esta el codigo se procede a calcular como siempre
 
 		if(frecuencia.toUpperCase().equals("DIA")){
@@ -321,6 +328,11 @@ public class TxtgeneratorApplication {
 		}
 	}
 		return frecuenciaMaximaToReturn;
+	} catch (Exception e) {
+		System.out.println(e.getMessage());
+		e.printStackTrace();
+		return 0;
+	}
 	}
 
 	public static List<Visita> getVisitasByFechaAndNroAfiliado(Set<String> fechasVisita,String nroAfiliado,List<Visita> listaVisitas){
@@ -428,6 +440,34 @@ public class TxtgeneratorApplication {
 		return daysToReturn;
 	}
 
+	public static Set<String> codigosEspecialesParaIntercalarOp(){
+		Set<String> mySet=new HashSet<>();
+		mySet.add("223105");//enfermeria de 8 horas diarias
+		mySet.add("223104");//enfermeria de 4 horas diarias
+		mySet.add("223101");//sesion de enfermeria
+		mySet.add("227011");//cuidador de 8 horas por dia
+		mySet.add("227012");//cuidador de 8 horas por dia
+		//estos ultimos 3 corresponden al 223101 del txt pero los de abajo son sus codigos de submodulo
+		mySet.add("223001");
+		mySet.add("223002");
+		mySet.add("223003");
+		return mySet;
+	}
+
+	public static Map<String,Integer> codigosConFrecuenciasMaximas(){
+		Map<String,Integer> myMap=new HashMap<>();
+		myMap.put("223105",3);//enfermeria de 8 horas diarias
+		myMap.put("223104",6);//enfermeria de 4 horas diarias
+		myMap.put("223101",1);//sesion de enfermeria
+		myMap.put("227011",3);//cuidador de 8 horas por dia
+		myMap.put("227012",3);//cuidador de 8 horas por dia
+		//estos ultimos 3 corresponden al 223101 del txt pero los de abajo son sus codigos de submodulo
+		myMap.put("223001",1);
+		myMap.put("223002",2);
+		myMap.put("223003",3);
+		return myMap;
+	}
+
 	public static String buildAmbulatorio(List<Visita> listaVisitas,List<Frecuencia> listafrecuenciasParamInAmbulatorio,Set<String> idsFrecuenciasParam) {
 		System.out.println("Building ambulatorio");
 		String toReturn="";
@@ -443,6 +483,7 @@ public class TxtgeneratorApplication {
 		}
 		for (String s : mapAfiliadosVisitas.keySet()) {//recorro primero por afiliado el orden es : se recorre primero un afiliado hasta terminar todas las fechas y asi continuar con el siguiente
 			boolean isPrimerDia=true;//para manejar los estaticos aun que no haya visitas
+			Integer indiceOp=1;
 			for (Visita visita : groupVisitasByFecha(mapAfiliadosVisitas.get(s),listafrecuenciasParamInAmbulatorio)) {//por cada afiliado obtengo la lista de visitas de fechas distintas
 				String bloqueAmbulatorio="";
 				/* 
@@ -541,32 +582,82 @@ public class TxtgeneratorApplication {
 				//Frecuencia frecuencia2=getFrecuenciaByNroOp(listafrecuenciasParamInAmbulatorio, frecuencia.nroOp, visitaFiltrada.tipoServicio); //comentado por el momento para meter todas las op
 				//Frecuencia frecuencia2=getFrecuenciaV2(listafrecuenciasParamInAmbulatorio, visitaFiltrada.nroAfiliado, visitaFiltrada.tipoServicio, idsFrecuencia);
 				//aca recorro todas las frecuencias para ver si hay algun codigo que se repite 2 veces y cargarlo por si deba ir
+				
+				//logica para intercarlar ops cuando tienen el mismo codigo , entonces lo que se hace es en una fecha se pone una y en otra fecha se pone otra op y asi sucesivamente
+				Set<String> setCodigosEspecialesParaIntercalarOp= codigosEspecialesParaIntercalarOp();
+				//Map<Integer,Frecuencia> mapPosicionesOp=new HashMap<>();
+				Map<Integer,Frecuencia> mapPosicionesOp223105=new HashMap<>();//se crea un map para cada tipo de servicio para obtener mejor precision a la hora de intercalar
+				Map<Integer,Frecuencia> mapPosicionesOp223104=new HashMap<>();//se crea un map para cada tipo de servicio para obtener mejor precision a la hora de intercalar
+				Map<Integer,Frecuencia> mapPosicionesOp223101=new HashMap<>();//se crea un map para cada tipo de servicio para obtener mejor precision a la hora de intercalar
+				Map<Integer,Frecuencia> mapPosicionesOp227011=new HashMap<>();//se crea un map para cada tipo de servicio para obtener mejor precision a la hora de intercalar
+				Map<Integer,Frecuencia> mapPosicionesOp227012=new HashMap<>();//se crea un map para cada tipo de servicio para obtener mejor precision a la hora de intercalar
+				Map<String,Map<Integer,Frecuencia>> listaDeMapsPosicionesOp=new HashMap<>();//se crea una lista de maps para pasar directamente este valor a la funcion de calculo y no pasar cada map
+				listaDeMapsPosicionesOp.put("223105",mapPosicionesOp223105);//se le asiga cada map a la lista asi solo se pasa la lista
+				listaDeMapsPosicionesOp.put("223104",mapPosicionesOp223104);//se le asiga cada map a la lista asi solo se pasa la lista
+				listaDeMapsPosicionesOp.put("223101",mapPosicionesOp223101);//se le asiga cada map a la lista asi solo se pasa la lista
+				listaDeMapsPosicionesOp.put("227011",mapPosicionesOp227011);//se le asiga cada map a la lista asi solo se pasa la lista
+				listaDeMapsPosicionesOp.put("227012",mapPosicionesOp227012);//se le asiga cada map a la lista asi solo se pasa la lista
+				Integer Indice223105=1;
+				Integer Indice223104=1;
+				Integer Indice223101=1;
+				Integer Indice227011=1;
+				Integer Indice227012	=1;
+				//logica para intercarlar ops cuando tienen el mismo codigo , entonces lo que se hace es en una fecha se pone una y en otra fecha se pone otra op y asi sucesivamente	
 				for (Frecuencia frecuencia2Aux : getFrecuenciasByNroAfiliadoYTipoServicio(listafrecuenciasParamInAmbulatorio, visitaFiltrada.nroAfiliado, visitaFiltrada.tipoServicio,fechaVisitaSinHora)) {//este for es para cargar la cantidad visitas van por cada codigo
 					if (mapTipoServicioCantidadParaCasosEspeciales.get(frecuencia2Aux.codTipoServicio )==null) {
 						mapTipoServicioCantidadParaCasosEspeciales.put(frecuencia2Aux.codTipoServicio, 1);
 					}else{//si ya existe ese codigo aumentar la cantidad
 						Integer valor=mapTipoServicioCantidadParaCasosEspeciales.get(frecuencia2Aux.codTipoServicio )+1;
 						mapTipoServicioCantidadParaCasosEspeciales.put(frecuencia2Aux.codTipoServicio, valor);
+						//System.out.println("codigo : "+ frecuencia2Aux.codTipoServicio +" se repite : " + valor +" nroOp: "+ frecuencia2Aux.nroOp);
 					}
+					//logica para intercarlar ops cuando tienen el mismo codigo , entonces lo que se hace es en una fecha se pone una y en otra fecha se pone otra op y asi sucesivamente
+					if (setCodigosEspecialesParaIntercalarOp.contains(frecuencia2Aux.codTipoServicio)) {//si contiene significa que es uno de los codigos especiales de enfermero o cuidador
+						if (frecuencia2Aux.codTipoServicio.equals("223105")) {
+							mapPosicionesOp223105.put(Indice223105, frecuencia2Aux);//se le da un indice a cada op para que cuando vaya recorriendo y veo que es ese codigo le asigne la frecuencia que le corresponde intercalando
+							//System.out.println("el indice de la op " +frecuencia2Aux.nroOp+" "+ frecuencia2Aux.codTipoServicio +" es: "+ Indice223105+" en la fecha : "+ fechaVisitaSinHora);
+							Indice223105++;
+						}else if (frecuencia2Aux.codTipoServicio.equals("223104")) {
+							mapPosicionesOp223104.put(Indice223104, frecuencia2Aux);//se le da un indice a cada op para que cuando vaya recorriendo y veo que es ese codigo le asigne la frecuencia que le corresponde intercalando
+							//System.out.println("el indice de la op " +frecuencia2Aux.nroOp+" "+ frecuencia2Aux.codTipoServicio +" es: "+ Indice223104+" en la fecha : "+ fechaVisitaSinHora);
+							Indice223104++;
+						}else if (frecuencia2Aux.codTipoServicio.equals("223101")) {
+							mapPosicionesOp223101.put(Indice223101, frecuencia2Aux);//se le da un indice a cada op para que cuando vaya recorriendo y veo que es ese codigo le asigne la frecuencia que le corresponde intercalando
+							//System.out.println("el indice de la op " +frecuencia2Aux.nroOp+" "+ frecuencia2Aux.codTipoServicio +" es: "+ Indice223101+" en la fecha : "+ fechaVisitaSinHora);
+							Indice223101++;
+						}else if (frecuencia2Aux.codTipoServicio.equals("227011")) {
+							mapPosicionesOp227011.put(Indice227011, frecuencia2Aux);//se le da un indice a cada op para que cuando vaya recorriendo y veo que es ese codigo le asigne la frecuencia que le corresponde intercalando
+							//System.out.println("el indice de la op " +frecuencia2Aux.nroOp+" "+ frecuencia2Aux.codTipoServicio +" es: "+ Indice227011+" en la fecha : "+ fechaVisitaSinHora);
+							Indice227011++;
+						}else if (frecuencia2Aux.codTipoServicio.equals("227012")) {
+							mapPosicionesOp227012.put(Indice227012, frecuencia2Aux);//se le da un indice a cada op para que cuando vaya recorriendo y veo que es ese codigo le asigne la frecuencia que le corresponde intercalando
+							//System.out.println("el indice de la op " +frecuencia2Aux.nroOp+" "+ frecuencia2Aux.codTipoServicio +" es: "+ Indice227012+" en la fecha : "+ fechaVisitaSinHora);
+							Indice227012++;
+						}
+					}
+					//logica para intercarlar ops cuando tienen el mismo codigo , entonces lo que se hace es en una fecha se pone una y en otra fecha se pone otra op y asi sucesivamente
 				}
 
 				for (Frecuencia frecuencia2 : getFrecuenciasByNroAfiliadoYTipoServicio(listafrecuenciasParamInAmbulatorio, visitaFiltrada.nroAfiliado, visitaFiltrada.tipoServicio,fechaVisitaSinHora)) {//aca listo todas las frecuencias que se encuentren de todas las op para esa fecha estoo se puede comentar para volver atras
+					if (setCodigosEspecialesParaIntercalarOp.contains(frecuencia2.codTipoServicio)) {
+						frecuencia2=calcularFrecuenciaIntercalada(indiceOp,frecuencia2,listaDeMapsPosicionesOp,fechaVisitaSinHora,mapTipoServicioCantidadParaCasosEspeciales.get(frecuencia2.codTipoServicio ));//aqui se decide si tengo que reemplazar la frecuencia actual por otra de igual tipo de servicio y codigo o si dejo la misma
+					}
 					if (!codigosUtilizados.contains(frecuencia2.codTipoServicio)) {//aca evito que se repita el codigo en el mismo bloque
 				if (frecuencia2 !=null && mapTipoServicioCantidad !=null && mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) !=null ) {//si esto pasa significa que esa visita existe en la lista de frecuencias entonces hay que ponerla en la lista pero cuidando las ocurrencias que no sobre pase el limite
-					if (mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) <= calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio) ) {//si la cantidad es menor o igual va la cantidad
+					if (mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) <= calcularFrecuenciaMaxima(frecuencia2,frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio) ) {//si la cantidad es menor o igual va la cantidad
 						bloqueAmbulatorio+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";2;"+frecuencia2.nroOp +"\n";
 					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio)+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
 					codigosUtilizados.add(frecuencia2.codTipoServicio);
 					tieneVisitas=true;
 					}else{
 						//System.out.println("sobre paso la cantidad maxima: "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ));
-						bloqueAmbulatorio+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio)+";2;"+frecuencia2.nroOp +"\n";
-					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio)+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
+						bloqueAmbulatorio+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2,frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio)+";2;"+frecuencia2.nroOp +"\n";
+					practicasSolicitadas+=";;;0;1;"+frecuencia2.codTipoServicio+";"+fechaVisitaSinHora+" 00:00"+";"+calcularFrecuenciaMaxima(frecuencia2,frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia),mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio)+";0;1"+"\n";//de paso ya creo las lineas de practicas solicitadas para no hacer otro for
 					codigosUtilizados.add(frecuencia2.codTipoServicio);
 					tieneVisitas=true;
 					}
 					if (fechaVisitaSinHora.equals(primerDiaMes) &&frecuencia2.codTipoServicio.equals("227012") && frecuencia2.nroOp.equals("9920794850")) {
-						System.out.println("cantidades "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ,mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio));
+						System.out.println("cantidades "+ "Cantidad de visitas es: "+ mapTipoServicioCantidad.get(visitaFiltrada.tipoServicio) +" maximo permitido es: "+calcularFrecuenciaMaxima(frecuencia2,frecuencia2.frecuencia, Integer.valueOf(frecuencia2.ocurrencia) ,mapTipoServicioCantidadParaCasosEspeciales,frecuencia2.codTipoServicio));
 					}
 					//listafrecuencias.remove(frecuencia2);//indicar que esa frecuencia ya la tome , ahora tomar otra
 					//mapTipoServicioCantidad.remove(visitaFiltrada.tipoServicio);//de aca saco el servicio para ya no usarlo para ese dia , de esa forma va solo uno con el conteo gral
@@ -577,6 +668,7 @@ public class TxtgeneratorApplication {
 				}
 			}
 			} //comentado del for de frencuencias 2
+			
 			}
 			//REL_PRACTICASREALIZADASXAMBULATORIO
 			isPrimerDia=false;//una vez todo procesado ya no es el primer dia de visita
@@ -593,9 +685,61 @@ public class TxtgeneratorApplication {
 				toReturn+=bloqueAmbulatorio;//si es que no cumple con las condiciones para ignorar el bloque lo cargamos
 			}
 			}
+			indiceOp++;
 	}
 	}
 		return toReturn;
+	}
+
+	public static boolean frecuenciaEsValida(Frecuencia frecuenciaAValidaParam,String fechaVisitaSinHoraParam){
+		boolean toReturn=true;
+		if (frecuenciaAValidaParam!=null ) {
+			Date fechaVisita=StringToDate(fechaVisitaSinHoraParam);
+				Date frecuenciaFechaVencimiento=StringToDate(frecuenciaAValidaParam.fechaVencimiento);
+				Date frecuenciaFechaInicio=StringToDate(frecuenciaAValidaParam.fechaInicio);
+				if (!fechaVisita.after(frecuenciaFechaVencimiento) && !frecuenciaFechaInicio.after(fechaVisita)) {//si la fecha de la visita no es mayor a la fecha de vencimiento y si la fecha de visita es mayor a la fecha de inicio
+					toReturn=true;//aca se valida la frecuencia segun fecha
+				}
+		}else{
+			toReturn=false;
+		}
+		return toReturn;
+	}
+
+	public static Frecuencia calcularFrecuenciaIntercalada(Integer indiceOpParam,Frecuencia frecuenciaParamASustituir,Map<String,Map<Integer,Frecuencia>> listaDeMapsPosicionesOpParam,
+																			String fechaVisitaSinHoraParam,Integer cantidadFrecuenciasConMismoCodigo){
+		//System.out.println("calcularFrecuenciaIntercalada");
+		Frecuencia frecuenciaToReturn=null;
+		Integer aux=indiceOpParam;
+		
+		while (aux >2) {//calculo para llegar al indice de la frecuencia que me interesa intercalar
+			aux=aux-2;
+		}
+		System.out.println("cantidadFrecuenciasConMismoCodigo: "+ cantidadFrecuenciasConMismoCodigo+" indiceOpParam: "+ indiceOpParam + " aux calculado: "+ aux +" fecha: "+ fechaVisitaSinHoraParam+" frecuencia: "+ frecuenciaParamASustituir.codTipoServicio+" nro op: "+ frecuenciaParamASustituir.nroOp);
+		Map<Integer,Frecuencia> mapAux=null;
+		if (frecuenciaParamASustituir.codTipoServicio.equals("223105")) {
+			mapAux=listaDeMapsPosicionesOpParam.get("223105");	
+		}else if(frecuenciaParamASustituir.codTipoServicio.equals("223104")){
+			mapAux=listaDeMapsPosicionesOpParam.get("223104");	
+		}else if(frecuenciaParamASustituir.codTipoServicio.equals("223101")){
+			mapAux=listaDeMapsPosicionesOpParam.get("223101");	
+		}else if(frecuenciaParamASustituir.codTipoServicio.equals("227011")){
+			mapAux=listaDeMapsPosicionesOpParam.get("227011");	
+		}else if(frecuenciaParamASustituir.codTipoServicio.equals("227012")){
+			mapAux=listaDeMapsPosicionesOpParam.get("227012");	
+		}
+		//System.out.println("mapAux: "+ mapAux.get(aux));
+		if (mapAux !=null && mapAux.get(aux) !=null && !mapAux.get(aux).nroOp.equals(frecuenciaParamASustituir.nroOp)) {//se comparan las op solo si son diferentes se sustiuye si es la misma no tiene caso
+			if (frecuenciaEsValida(mapAux.get(aux),fechaVisitaSinHoraParam)) {//aca se valida si la frecuencia la tengo que traer o no segun fechas
+					frecuenciaToReturn=mapAux.get(aux);//aca se devuelve la frecuencia sustituyendo la original por una que es similar y le corresponde al intercalar
+				System.out.println("frecuencia nueva: "+ frecuenciaToReturn.nroOp + " frecuencia original :"+ frecuenciaParamASustituir.nroOp+" en fecha :" +fechaVisitaSinHoraParam +" indice calculado:"+ aux +" indiceOpParam: "+ indiceOpParam);
+			}else{
+				frecuenciaToReturn=frecuenciaParamASustituir;//frecuencia que se quiso sustiuir no es valida por fechas
+			}
+		}else{
+			frecuenciaToReturn=frecuenciaParamASustituir;//e
+		}
+		return frecuenciaToReturn;
 	}
 
 	private static Frecuencia getFrecuenciaByNroAfiliado(String nroAfiliadoParam,List<Frecuencia> listafrecuencias,String fechaVisitaParam) {
