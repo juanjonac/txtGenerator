@@ -7,6 +7,7 @@ public class Insumo {
    public String codigo;
    public String frecuencia;
    public String ocurrencia;
+   public Frecuencia frecuenciaObjeto;
    @Override
    public String toString() {
       return "Insumo [codigo=" + codigo + ", frecuencia=" + frecuencia + ", nroBeneficiario=" + nroBeneficiario

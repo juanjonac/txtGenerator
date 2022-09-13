@@ -1,0 +1,42 @@
+cosas para corregir
+1 problema de ver cuando los beneficiarios tienen mas de 3 op 405073070502 este beneficiario 
+tiene 3 op poner 3 en el parametro ******** ver si lo arreglo a mano o logro sacar el nro correcto de ops iguales para intercalar es solo el nro ok
+2 problema de los estaticos ok
+3 ver como agregar los estaticos cuando no hay visitas de un paciencia o no tiene fechas el primero segun fecha de inicio op si la fecha de inicio es menor al primer dia del mes entonces va en el primer dia sino va en el dia de la primera visita o fecha de incio
+3.1 cuando la fecha de inicio es menor a la fecha de la visita y es el 01 del mes entonces van sin problema o si no van en la fecha de inicio ok
+3.2 cuando la fecha de inicio es menor a la fecha de visita y ese beneficiario no tiene visitas el 01 pero tiene visitas otras fechas inventar en fecha 1 ok
+3.3 directamente cuando el beneficiario no tiene una sola visita ESTE FALTAA
+analizar este beneficiario que arranca el 06 
+
+problema de fechas a ver jose
+9920658781,  9920617129 verificar este si tiene fechas
+
+9921519340
+9921519404
+9921519444
+
+
+agregar a mano a la 10
+AMBULATORIO
+30-70896790-0;;137819;0;0;0;1;0;08/08/2022;;;2;9921435538;;155846855500;00
+;;;0;1;I64;1
+REL_PRACTICASREALIZADASXAMBULATORIO
+;;;0;1;215102;08/08/2022 00:00;24;2;9921578956
+;;;0;1;215101;08/08/2022 00:00;24;2;9921578956
+;;;0;1;223101;08/08/2022 00:00;1;2;9921435538
+;;;0;1;229101;08/08/2022 00:00;1;2;9921435538
+;;;0;1;219101;08/08/2022 00:00;1;2;9921435538
+REL_PRACTICASSOLICITADASXAMBULATORIO
+;;;0;1;215102;08/08/2022 00:00;24;0;1
+;;;0;1;215101;08/08/2022 00:00;24;0;1
+;;;0;1;223101;08/08/2022 00:00;1;0;1
+;;;0;1;229101;08/08/2022 00:00;1;0;1
+;;;0;1;219101;08/08/2022 00:00;1;0;1
+FIN AMBULATORIO
+
+15042335970700	9921180253 mandar a mano el insumo estatico el 02 de agosto
+
+agregar a mano a la 06
+14592894090100	9921453967	Otros	216101 el 23/08
+15069308400100	9921537524 arranca el 26/08 no tiene una sola visita en el idi ver para meter a mano puede llevar un poco mas de tiempo
+
