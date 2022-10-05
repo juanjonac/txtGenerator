@@ -10,7 +10,6 @@ from wo_headers as header, wo_details as detail , frecuenciasmatcher as frecuenc
 where header.WO_id=detail.WO_originalId and frecuencias.tipoServicio=detail.type_of_service and frecuencias.codigoEstatico=detail.serviceId 
 and IFNULL(header.fechaInicio,header.activationDate) is not null/*con esto se filtran los que no estan en la planilla vtos , el concat es para matchear los beneficiarios que no tienen todos los numeros en la planilla vtos o de colores*/
 /*and  replace(header.patientId,"-","")="90929095d00300"*/
-
 group by header.patientId, nroOp,type_of_service,estatico
 
 /*fecha de vencimiento convertido a fecha DATE_FORMAT(STR_TO_DATE(fechas.fechaVencimiento,'%d/%m/%Y'),'%d/%m/%Y') */

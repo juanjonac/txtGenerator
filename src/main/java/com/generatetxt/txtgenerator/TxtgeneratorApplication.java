@@ -57,11 +57,12 @@ public class TxtgeneratorApplication {
 	public static String FIN_AMBULATORIO = "FIN AMBULATORIO";
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 	public static Integer diasDelMes=30;
-	public static String primerDiaMes="01/06/2022";
-	public static String ultimoDiaMes="30/06/2022";
-	public static String fileName = basicPath + "visitas JUNIO2022.xlsx";
+	public static String primerDiaMes="01/09/2022";
+	public static String ultimoDiaMes="30/09/2022";
+	public static String fileName = basicPath + "visitas SEPTIEMBRE2022.xlsx";
 	public static String selectedUgl="31";//06,10,11,31
-	public static String mesAño="06-22";//se debe actualizar por cada mes a generar
+	public static String mesAño="09-22";//se debe actualizar por cada mes a generar
+	public static String fechaGeneracion="05/10/2022";//se debe actualizar por cada mes a generar
 	//variables que hay que cambiar todos los meses para poder generar *************************************************************************************************
 
 	
@@ -99,7 +100,7 @@ public class TxtgeneratorApplication {
 	public static String buildCabeceraUgl06() {
 		System.out.println("Building cabecera ugl 06");
 		String toReturn = CABECERA + "\n";
-		toReturn += "30-70896790-0;;11/01/2022;"+mesAño+";JUNTOS EN CASA S.R.L.;1;UP30708967900N2;58342\n";
+		toReturn += "30-70896790-0;;"+fechaGeneracion+";"+mesAño+";JUNTOS EN CASA S.R.L.;1;UP30708967900N2;58342\n";
 		toReturn+="RED"+"\n";
 		toReturn+="30-70896790-0;;;0;JUN;JUNTOS EN CASA S.R.L.;0;Av. Corrientes 2589;0;;;;"+"\n";
 		toReturn+="PROFESIONAL"+"\n";
@@ -213,7 +214,8 @@ public class TxtgeneratorApplication {
 		estaticosAEvitar.add("231003");
 		estaticosAEvitar.add("226001");
 		estaticosAEvitar.add("215005");
-		
+		estaticosAEvitar.add("216001");
+		estaticosAEvitar.add("216002");
 		return estaticosAEvitar;
 	}
 
@@ -264,12 +266,12 @@ public class TxtgeneratorApplication {
 	public static Frecuencia getFrecuenciaParaEstaticos(String nroAfiliado,String tipoServicio,List<Frecuencia> listFrecuenciasParam,String fechaVisitaParam,Set<String> codigosEstaticosAEvitar,String opAFiltrar){
 		//System.out.println("get frecuencia***************************************************");
 		Frecuencia frecuenciaToReturn = null;
-		Set<String> estaticosAEvitar=new HashSet<>();//buildCodigosEstaticosAEvitar(); //comentado y se deja vacio porque voy a controlar los codigos estaticos en otro nivel
+		Set<String> estaticosAEvitar=buildCodigosEstaticosAEvitar();//buildCodigosEstaticosAEvitar(); //comentado y se deja vacio porque voy a controlar los codigos estaticos en otro nivel
 		//System.out.println("nroAfiliado: "+ nroAfiliado + " tipo servicio: "+ tipoServicio +" fecha visita: "+ fechaVisitaParam);
 		for (int i=0;i<listFrecuenciasParam.size();i++) {
 			Frecuencia frecuencia1=listFrecuenciasParam.get(i);
 			//System.out.println(frecuencia1.toString());
-			if(frecuencia1.tipoServicio.equals(tipoServicio) && frecuencia1.nroAfiliado.equals(nroAfiliado) && frecuencia1.nroOp.equals(opAFiltrar)){//aca se hace el match entre el excel de visitas con el excel de frecuencias donde esta el nro de op aca se agrega opAFiltrar porque quiero que sea el codigo correcto pero de la misma op
+			if(/*frecuencia1.tipoServicio.equals(tipoServicio) && comentado para que se pueda buscar otros tipos tambien*/ frecuencia1.nroAfiliado.equals(nroAfiliado) && frecuencia1.nroOp.equals(opAFiltrar)){//aca se hace el match entre el excel de visitas con el excel de frecuencias donde esta el nro de op aca se agrega opAFiltrar porque quiero que sea el codigo correcto pero de la misma op
 				Date fechaVisita=StringToDate(fechaVisitaParam);
 				
 				//System.out.println("coincide la visita con la frecuencia");
@@ -600,17 +602,20 @@ public class TxtgeneratorApplication {
 				String insumosEstaticosParaPracticasSolicitadas="";
 					Date fechaInicioOp=StringToDate(frecuencia.fechaInicio);
 					Date fechaVisitaDate=StringToDate(fechaVisitaSinHora);
-					if ((fechaInicioOp.before(fechaVisitaDate) && fechaVisitaSinHora.equals(primerDiaMes)) || frecuencia.fechaInicio.equals(fechaVisitaSinHora)) {//aca calcular si poner o no los estaticos // si la fecha de inicio es anterior  y es el primer dia del mes entonces poner los estaticos sin problema o si la fecha de inicio es igual a la fecha de la visita poner los estaticos ese dia
+					if ((fechaInicioOp.before(fechaVisitaDate) && (fechaVisitaSinHora.equals(primerDiaMes) || isPrimerDia)) || frecuencia.fechaInicio.equals(fechaVisitaSinHora)) {//aca calcular si poner o no los estaticos // si la fecha de inicio es anterior  y es el primer dia del mes entonces poner los estaticos sin problema o si la fecha de inicio es igual a la fecha de la visita poner los estaticos ese dia
+						if (frecuencia.nroOp.equals("9921325331")) {
+							System.out.println("ver que es : "+ frecuencia.toString());
+						}
 					Frecuencia frecuenciaEstaticos=frecuencia;
 					Set<String> codigosEstaticosAEvitar=buildCodigosEstaticosAEvitar();
 					if (codigosEstaticosAEvitar.contains(frecuenciaEstaticos.codigoEstatico)) {
-						System.out.println("para cambiar op: "+ frecuencia.nroOp+ " codigo: "+ frecuencia.codigoEstatico);
+						System.out.println("para cambiar op: "+ frecuenciaEstaticos.nroOp+ " codigo: "+ frecuenciaEstaticos.codigoEstatico);
 						//si contiene un codigo especiale buscar otra op para hacer los calculos porque esa no es para estatico
 						Frecuencia frecuenciaAux=getFrecuenciaParaEstaticos(visita.nroAfiliado, visita.tipoServicio, listafrecuenciasParamInAmbulatorio,fechaVisitaSinHora,codigosEstaticosAEvitar,frecuencia.nroOp);
 						if (frecuenciaAux !=null) {
 							frecuenciaEstaticos = frecuenciaAux;
 						}
-						
+						System.out.println("nueva op: "+ frecuenciaEstaticos.nroOp+ " nuevo codigo: "+ frecuenciaEstaticos.codigoEstatico);
 					}
 					Integer diasCalculadosParaEstaticos=calcularFrecuenciaEstaticos(frecuenciaEstaticos,primerDiaMes,fechaVisitaSinHora);
 					
